@@ -105,7 +105,6 @@ umap_dist <- Embeddings(object = columns_genes_transp_plus_one_log_remove_std_le
 rownames(umap_dist) <- colnames(columns_genes_transp_plus_one_log_remove_std_less_than_1)
 
 
-
 #-- CIELAB coloring --#
 # library(uwot)
 # # scale = T -->  Scale each column to zero mean and variance 1.
@@ -144,85 +143,85 @@ rownames(umap_dist) <- colnames(columns_genes_transp_plus_one_log_remove_std_les
 #-------------------------------------------------------------------------------#
 
 # original umap
-UMAP1Size <- max(umap_dist[,1]) - min(umap_dist[,1]) #a
-UMAP2Size <- max(umap_dist[,2]) - min(umap_dist[,2]) #b
-UMAP3Size <- max(umap_dist[,3]) - min(umap_dist[,3]) #L
-
-MaxScalingFactor_1 <- 256/UMAP1Size
-MaxScalingFactor_2 <- 256/UMAP2Size
-MaxScalingFactor_3 <- 100/UMAP3Size
-
-MaxScalingFactor <- ifelse(MaxScalingFactor_1 < MaxScalingFactor_2, MaxScalingFactor_1, MaxScalingFactor_2)
-MaxScalingFactor <- ifelse(MaxScalingFactor < MaxScalingFactor_3, MaxScalingFactor, MaxScalingFactor_3)
-
-#offset 
-UMAP1offset <- ( max(umap_dist[,1]) + min(umap_dist[,1]) )/2
-UMAP2offset <- ( max(umap_dist[,2]) + min(umap_dist[,2]) )/2
-UMAP3offset <- ( max(umap_dist[,3]) + min(umap_dist[,3]) )/2
-
-umap_dist_scaled <- matrix(nrow=nrow(umap_dist), ncol=ncol(umap_dist))
-umap_dist_scaled[,1] <- (umap_dist[,1] - UMAP1offset)*MaxScalingFactor 
-umap_dist_scaled[,2] <- (umap_dist[,2] - UMAP2offset)*MaxScalingFactor 
-umap_dist_scaled[,3] <- (umap_dist[,3] - UMAP3offset)*MaxScalingFactor + 50
-rownames(umap_dist_scaled) <- rownames(umap_dist)
-
-# Lab values
-UMAPSize <- ifelse(UMAP1Size < UMAP2Size, UMAP1Size, UMAP2Size)
-if(UMAPSize > UMAP3Size){
-  print("312")
-  Lab <- umap_dist_scaled[,c(3,1,2)]
-} else {
-    if(UMAP1Size > UMAP2Size){
-      print("132")
-      Lab <- umap_dist_scaled[,c(1,3,2)]
-    } else{
-      print("123")
-        Lab <- umap_dist_scaled[,c(1,2,3)]
-  }
-}
-colnames(Lab) <- c("L", "a", "b")
-
-Lab <- round(Lab,2)
-rawdata=structure(list(Lstar = c(Lab[,1]), Astar = c(Lab[,2]),
-                       Bstar = c(Lab[,3])), .Names = c("Lstar","Astar", "Bstar"), row.names = c(rownames(umap_dist)), class = "data.frame")
-
-library(colorspace)
-LABdata <- with(rawdata,LAB(Lstar,Astar,Bstar))
-
-ggplot(rawdata, aes(x=umap_dist[,1], y=umap_dist[,2])) +
-  geom_point(size=0.5, aes(colour=hex(LABdata,fix = TRUE))) +
-  scale_color_identity()
-
-
-library(plotly)
-a <- hex(LABdata,fix = TRUE)
-
-axx <- list(
-  nticks = 4,
-  title = "x"
-)
-
-axy <- list(
-  nticks = 4,
-  title = "y"
-)
-
-axz <- list(
-  nticks = 4,
-  title = "z"
-)
-
-fig <- plot_ly(data = as.data.frame(umap_dist), 
-               x = umap_dist[,1], y = umap_dist[,2], z = umap_dist[,3], 
-               type = "scatter3d", 
-               mode = "markers", 
-               text = c(rownames(umap_dist)),
-               # hoverinfo = 'text',
-               marker = list(color = hex(LABdata,fix = TRUE), size = 3, width=2))
-               # marker = list(size = 1, width=1)) # controls size of points
-fig <- fig %>% layout(scene = list(xaxis=axx,yaxis=axy,zaxis=axz))
-
-fig
+# UMAP1Size <- max(umap_dist[,1]) - min(umap_dist[,1]) #a
+# UMAP2Size <- max(umap_dist[,2]) - min(umap_dist[,2]) #b
+# UMAP3Size <- max(umap_dist[,3]) - min(umap_dist[,3]) #L
+# 
+# MaxScalingFactor_1 <- 256/UMAP1Size
+# MaxScalingFactor_2 <- 256/UMAP2Size
+# MaxScalingFactor_3 <- 100/UMAP3Size
+# 
+# MaxScalingFactor <- ifelse(MaxScalingFactor_1 < MaxScalingFactor_2, MaxScalingFactor_1, MaxScalingFactor_2)
+# MaxScalingFactor <- ifelse(MaxScalingFactor < MaxScalingFactor_3, MaxScalingFactor, MaxScalingFactor_3)
+# 
+# #offset 
+# UMAP1offset <- ( max(umap_dist[,1]) + min(umap_dist[,1]) )/2
+# UMAP2offset <- ( max(umap_dist[,2]) + min(umap_dist[,2]) )/2
+# UMAP3offset <- ( max(umap_dist[,3]) + min(umap_dist[,3]) )/2
+# 
+# umap_dist_scaled <- matrix(nrow=nrow(umap_dist), ncol=ncol(umap_dist))
+# umap_dist_scaled[,1] <- (umap_dist[,1] - UMAP1offset)*MaxScalingFactor 
+# umap_dist_scaled[,2] <- (umap_dist[,2] - UMAP2offset)*MaxScalingFactor 
+# umap_dist_scaled[,3] <- (umap_dist[,3] - UMAP3offset)*MaxScalingFactor + 50
+# rownames(umap_dist_scaled) <- rownames(umap_dist)
+# 
+# # Lab values
+# UMAPSize <- ifelse(UMAP1Size < UMAP2Size, UMAP1Size, UMAP2Size)
+# if(UMAPSize > UMAP3Size){
+#   print("312")
+#   Lab <- umap_dist_scaled[,c(3,1,2)]
+# } else {
+#     if(UMAP1Size > UMAP2Size){
+#       print("132")
+#       Lab <- umap_dist_scaled[,c(1,3,2)]
+#     } else{
+#       print("123")
+#         Lab <- umap_dist_scaled[,c(1,2,3)]
+#   }
+# }
+# colnames(Lab) <- c("L", "a", "b")
+# 
+# Lab <- round(Lab,2)
+# rawdata=structure(list(Lstar = c(Lab[,1]), Astar = c(Lab[,2]),
+#                        Bstar = c(Lab[,3])), .Names = c("Lstar","Astar", "Bstar"), row.names = c(rownames(umap_dist)), class = "data.frame")
+# 
+# library(colorspace)
+# LABdata <- with(rawdata,LAB(Lstar,Astar,Bstar))
+# 
+# ggplot(rawdata, aes(x=umap_dist[,1], y=umap_dist[,2])) +
+#   geom_point(size=0.5, aes(colour=hex(LABdata,fix = TRUE))) +
+#   scale_color_identity()
+# 
+# 
+# library(plotly)
+# a <- hex(LABdata,fix = TRUE)
+# 
+# axx <- list(
+#   nticks = 4,
+#   title = "x"
+# )
+# 
+# axy <- list(
+#   nticks = 4,
+#   title = "y"
+# )
+# 
+# axz <- list(
+#   nticks = 4,
+#   title = "z"
+# )
+# 
+# fig <- plot_ly(data = as.data.frame(umap_dist), 
+#                x = umap_dist[,1], y = umap_dist[,2], z = umap_dist[,3], 
+#                type = "scatter3d", 
+#                mode = "markers", 
+#                text = c(rownames(umap_dist)),
+#                # hoverinfo = 'text',
+#                marker = list(color = hex(LABdata,fix = TRUE), size = 3, width=2))
+#                # marker = list(size = 1, width=1)) # controls size of points
+# fig <- fig %>% layout(scene = list(xaxis=axx,yaxis=axy,zaxis=axz))
+# 
+# fig
 
 #------------------------------------------------------------------------------#
 
