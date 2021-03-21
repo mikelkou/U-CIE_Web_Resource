@@ -15,7 +15,6 @@ matrix_counts <- data.matrix(matrix_counts) # must be a matrix object!
 
 transp <- t(matrix_counts)
 
-
 cnt <- 0
 columns_genes_transp_plus_one <- c()
 for(i in 1:ncol(transp)){
@@ -33,7 +32,7 @@ colnames(columns_genes_transp_plus_one) <- colnames(t(matrix_counts))
 
 write.table(columns_genes_transp_plus_one, "Desktop/CBPP_22012021/Lars_Lab/single_cells/CIELAB_umap/columns_genes_transp_plus_one.tsv", quote = F, sep = "\t", row.names = T, col.names = T)
 
-
+#log the FC
 columns_genes_transp_plus_one_log <- log2(columns_genes_transp_plus_one)
 # columns_genes_transp_plus_one_log[is.infinite(columns_genes_transp_plus_one_log)] <- 0
 
@@ -47,6 +46,7 @@ columns_genes_transp_plus_one_log <- log2(columns_genes_transp_plus_one)
 # df_plus_one_log <- log2(df_plus_one)
 #--- --------------------------------- ---#
 
+# SingleCellExperiment pipeline
 sce <- SingleCellExperiment(assays = list(counts = columns_genes_transp_plus_one_log))
 # sce <- sce[, colSums(counts(sce)) > 0] #if error
 
@@ -61,7 +61,7 @@ sce <- sce[, !filtered$discard]
 # sce <- scater::logNormCounts(sce, log=FALSE) # if log2 already implemented by me
 # sce <- scater::logNormCounts(sce)
 # normcounts(sce)[1:5,1:5]
-logcounts(sce) <- counts(sce)
+logcounts(sce) <- counts(sce) # without a normalization method
 
 # Feature selection.
 library(scran)
