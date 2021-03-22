@@ -24,7 +24,7 @@ for(i in 1:ncol(TransposedMatrixCounts)){
     print(cnt)
   }
 }
-colnames(FC_MatrixCounts) <- colnames(t(matrix_counts))
+colnames(FC_MatrixCounts) <- rownames(matrix_counts)
 # FC_MatrixCounts[is.infinite(FC_MatrixCounts)] <- 0
 
 #log the FC

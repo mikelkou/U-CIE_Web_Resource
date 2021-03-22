@@ -1,7 +1,7 @@
 # Analysis of genes (sd, bulb genes, etc)
 
 # Which part of the plot to KEEP based on the coordinates
-MatrixToKeep <- umap_dist[which(umap_dist[,2] > (-6) & umap_dist[,1] < 2), ]
+MatrixToKeep <- umap_dist[which(umap_dist[,1] > (-5) & umap_dist[,2] > (-3.5)), ]
 # MatrixToKeep <- umap_dist[which(MatrixToKeep[,2] > (-5) & MatrixToKeep[,2] < 12), ]
 
 VectorOfGenesToKeep <- rownames(MatrixToKeep)

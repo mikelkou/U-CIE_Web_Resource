@@ -37,4 +37,4 @@ data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
 umap_dist <- data_umap_coord
 # umap_dist <- as.data.frame(data[["umap"]]@cell.embeddings)
 
-
+cielab(umap_dist) # cielab_function

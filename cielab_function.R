@@ -1,4 +1,5 @@
 cielab <- function(umap_dist) {
+  library(ggplot2)
   # Size of dimensions
   UMAP1Size <- max(umap_dist[, 1]) - min(umap_dist[, 1])
   UMAP2Size <- max(umap_dist[, 2]) - min(umap_dist[, 2])
@@ -93,7 +94,8 @@ cielab <- function(umap_dist) {
       (umap_dist[, 2] - UMAP2offset) * MaxScalingFactor
   }
   rownames(umap_dist_scaled) <- rownames(umap_dist)
-  colnames(Lab) <- c("L", "a", "b")
+  colnames(umap_dist_scaled) <- c("L", "a", "b")
+  Lab <- umap_dist_scaled
   
   Lab <- round(Lab, 2)
   rawdata = structure(
@@ -149,5 +151,23 @@ cielab <- function(umap_dist) {
     zaxis = axz
   ))
   
+  
+  library(hashmap)
+  HexFromLabData <- hashmap(keys = rownames(umap_dist_scaled), values = hex(LABdata, fix = TRUE))
+  
   return(fig)
 }
+# HexFromLabData[[ UniqueNodes07 ]]
+HashmapDataFrame <- HexFromLabData$data.frame()
+
+network_thrs07 <- read.delim("/Users/tgn531/Desktop/CBPP_22012021/Lars_Lab/single_cells/scdata_results/hPSCs_cell_type_network_thrs07_ncol100.tsv", header = F)
+UniqueNodes07 <- unique(c(unique(network_thrs07$V1), unique(network_thrs07$V2)))
+NodesColors07 <- HashmapDataFrame[HashmapDataFrame$Keys %in% UniqueNodes07, ]
+
+
+write.table(NodesColors07, file = "/Users/tgn531/Desktop/CBPP_22012021/Lars_Lab/single_cells/scdata_results/hPSCs_cell_type_network_thrs07_colored_nodes.tsv",
+            quote = F, row.names = F, col.names = T, sep = "\t")
+
+write.table(a, "/Users/tgn531/Desktop/CBPP_22012021/Lars_Lab/single_cells/scdata_results/hPSCs_cell_type_network_thrs07_ncol100.tsv", quote = F, 
+            col.names = T, row.names = F, sep="\t")
+
