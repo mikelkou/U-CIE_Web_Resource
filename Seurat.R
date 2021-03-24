@@ -28,7 +28,7 @@ data <- FindNeighbors(data, dims = 1:15)
 data <- FindClusters(data, resolution = 0.5,  algorithm= 1) # color in Seurat umap output
 
 data <- RunUMAP(data, dims = 1:50, n.components = 3L)
-DimPlot(data, reduction = "umap", split.by = "seurat_clusters")
+# DimPlot(data, reduction = "umap", split.by = "seurat_clusters")
 DimPlot(data, reduction = "umap")
 
 data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)

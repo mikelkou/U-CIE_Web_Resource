@@ -1,5 +1,24 @@
 # Analysis of genes (sd, bulb genes, etc)
 
+# Matrix with SD of each gene to exclude those with SD<1
+SDMoreThanOnelog2FC_MatrixCounts <- c()
+for(i in 1:ncol(log2FC_MatrixCounts)){
+  std <- sd(log2FC_MatrixCounts[,i])
+  SDMoreThanOnelog2FC_MatrixCounts <- cbind(SDMoreThanOnelog2FC_MatrixCounts, std)
+}
+colnames(SDMoreThanOnelog2FC_MatrixCounts) <- colnames(log2FC_MatrixCounts)
+# length(which(SDMoreThanOnelog2FC_MatrixCounts[1,]<1))
+
+SDMoreThanOnelog2FC_MatrixCounts <- select(as.data.frame(log2FC_MatrixCounts), 
+                                           -c(names(which(SDMoreThanOnelog2FC_MatrixCounts[1,]<1))))
+
+head(colnames(SDMoreThanOnelog2FC_MatrixCounts))
+any(names(which(SDMoreThanOnelog2FC_MatrixCounts[1,]<1)) %in% colnames(SDMoreThanOnelog2FC_MatrixCounts))
+
+# Use SDMoreThanOnelog2FC_MatrixCounts as input in Seurat pipeline
+#-------------------------------------------------------------------------------#
+#-------------------------------------------------------------------------------#
+
 # Which part of the plot to KEEP based on the coordinates
 MatrixToKeep <- umap_dist[which(umap_dist[,1] > (-5) & umap_dist[,2] > (-3.5)), ]
 # MatrixToKeep <- umap_dist[which(MatrixToKeep[,2] > (-5) & MatrixToKeep[,2] < 12), ]
@@ -23,23 +42,6 @@ NotRegulatedGenes <- df[ , colnames(df)[bulb_genes_50_comp]]
 library(dplyr)
 log2FC_MatrixCountsWithoutBulbGenes <- select(as.data.frame(log2FC_MatrixCounts), -c(rownames(NotRegulatedGenes)))
 any(colnames(NotRegulatedGenes) %in% colnames(log2FC_MatrixCountsWithoutBulbGenes)) # Check
-#-------------------------------------------------------------------------------#
-#-------------------------------------------------------------------------------#
-
-# Matrix with SD of each gene to exclude those with SD<1
-SD_log2FC_MatrixCountsWithoutBulbGenes <- c()
-for(i in 1:ncol(log2FC_MatrixCounts)){
-  std <- sd(log2FC_MatrixCounts[,i])
-  SD_log2FC_MatrixCountsWithoutBulbGenes <- cbind(SD_log2FC_MatrixCountsWithoutBulbGenes, std)
-}
-colnames(SD_log2FC_MatrixCountsWithoutBulbGenes) <- colnames(log2FC_MatrixCounts)
-# length(which(SD_log2FC_MatrixCountsWithoutBulbGenes[1,]<1))
-
-SDMoreThanOnelog2FC_MatrixCounts <- select(as.data.frame(log2FC_MatrixCounts), 
-                                           -c(names(which(SD_log2FC_MatrixCountsWithoutBulbGenes[1,]<1))))
-
-# names(which(SD_log2FC_MatrixCountsWithoutBulbGenes[1,]<1))
-any(names(which(SD_log2FC_MatrixCountsWithoutBulbGenes[1,]<1)) %in% colnames(SDMoreThanOnelog2FC_MatrixCounts))
 #-------------------------------------------------------------------------------#
 #-------------------------------------------------------------------------------#
 

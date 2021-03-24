@@ -30,5 +30,6 @@ colnames(FC_MatrixCounts) <- rownames(matrix_counts)
 #log the FC
 log2FC_MatrixCounts <- log2(FC_MatrixCounts)
 
-write.table(FC_MatrixCounts, "Desktop/CBPP_22012021/Lars_Lab/single_cells/CIELAB_umap/FC_MatrixCounts.tsv", quote = F, sep = "\t", row.names = T, col.names = T)
+# write.table(FC_MatrixCounts, "Desktop/CBPP_22012021/Lars_Lab/single_cells/CIELAB_umap/FC_MatrixCounts.tsv", quote = F, sep = "\t", row.names = T, col.names = T)
 
+# Use log2FC_MatrixCounts as input in Seurat pipeline
