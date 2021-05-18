@@ -1,6 +1,11 @@
 cielab <- function(umap_dist) {
   library(ggplot2)
   # Size of dimensions
+  
+  #----------#
+  # umap_dist <- subset(umap_dist, umap_dist[,1]<=5)
+  #----------#
+  
   UMAP1Size <- max(umap_dist[, 1]) - min(umap_dist[, 1])
   UMAP2Size <- max(umap_dist[, 2]) - min(umap_dist[, 2])
   UMAP3Size <- max(umap_dist[, 3]) - min(umap_dist[, 3])

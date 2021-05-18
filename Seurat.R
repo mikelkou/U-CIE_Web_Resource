@@ -12,6 +12,7 @@ library(Matrix)
 # log2FC matrix comes from log2_FC_of_genes.R script --> log2FC_MatrixCounts
 # After identifying SD<1 from Distribution_analysis_of_genes.R --> SDMoreThanOnelog2FC_MatrixCounts
 
+# data <- CreateSeuratObject(counts = pearson) # co-expression network with pearson --> Computerome 2.0
 data <- CreateSeuratObject(counts = log2FC_MatrixCounts)
 data <- CreateSeuratObject(counts = SDMoreThanOnelog2FC_MatrixCounts)
 # data[["percent.mt"]] <- PercentageFeatureSet(data, pattern = "^MT-")
@@ -21,6 +22,10 @@ data <- CreateSeuratObject(counts = SDMoreThanOnelog2FC_MatrixCounts)
 all.genes <- rownames(data)
 data <- ScaleData(data, do.scale =  F, do.center = F, features = all.genes)
 data <- FindVariableFeatures(object = data, selection.method = 'mvp') #mvp becaue of error in log
+
+# data <- FindVariableFeatures(object = data)
+# data <- RunPCA(data, features = VariableFeatures(object = data) )
+
 data <- RunPCA(data, npcs = 50, features = VariableFeatures(object = data))
 # print(data[["pca"]], dims = 1:5, nfeatures = 5)
 # DimPlot(data, reduction = "pca")
@@ -34,7 +39,15 @@ DimPlot(data, reduction = "umap")
 data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
 # data_umap_coord <- as.data.frame(data[["pca"]]@cell.embeddings[,3])
 
+#______________________________________________________________________________#
 umap_dist <- data_umap_coord
 # umap_dist <- as.data.frame(data[["umap"]]@cell.embeddings)
 
 cielab(umap_dist) # cielab_function
+
+# umap_dist <- lrgb
+# lrgb <- Lab2RGB(Lab)
+
+
+
+
