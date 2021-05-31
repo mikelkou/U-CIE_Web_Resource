@@ -99,21 +99,7 @@ RGB_space <- data.frame("R"= c(seq(0, 255, by=32),255, # K -> R
                         
 )
 
-library(colorspace)
-# x <- polarLUV(L = 70, C = 50, H = c(0, 120, 240))
-# y <- as(x, "sRGB")
-# 
-# 
-x <- LABdata[1:10,]
-y <- as(x, "sRGB")
-# 
-# RGB2Lab(c(0,0,255))
-# lrgb <- Lab2RGB(Lab)
-# 
-
-
 library(plotly)
-
 # RGB gamut - cube
 fig <- plot_ly(type = 'mesh3d',
                x = c(0,   0,    255,    255,    0,     0,     255, 255),
@@ -133,8 +119,7 @@ fig <- plot_ly(type = 'mesh3d',
                )
 fig
 
-# a == matrix transformed into CIELAB 
-
+# Cielab axis
 axx <- list(
   nticks = 4,
   title = "a",
@@ -154,9 +139,9 @@ axz <- list(
 )
 
 fig <- plot_ly(type = 'mesh3d',
-               x = RGBtoLabCoords[,3],
-               y = RGBtoLabCoords[,2],
-               z = RGBtoLabCoords[,1],
+               x = RGB_space[,1],
+               y = RGB_space[,2],
+               z = RGB_space[,3],
               
                # Cube
                # i = c(7, 0, 0, 0, 4, 4, 6, 6, 4, 0, 3, 2),
@@ -168,7 +153,7 @@ fig <- plot_ly(type = 'mesh3d',
                # colors = c(hex(LABdata, fix = TRUE)[100:767])
                # colorscale='Rainbow'
 )
-fig <- fig %>% layout(scene = list(xaxis=axx,yaxis=axy,zaxis=axz))
+# fig <- fig %>% layout(scene = list(xaxis=axx,yaxis=axy,zaxis=axz))
 fig
 
 # sRGB color colors
