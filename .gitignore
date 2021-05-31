@@ -3,3 +3,9 @@ columns_genes_transp_plus_one.tsv
 .Rproj.user
 .Rhistory
 .RData
+*.tsv
+*.cys
+*.mat
+*.csv
+physical_net_colors
+*.pdf
