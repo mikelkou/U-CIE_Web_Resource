@@ -13,6 +13,7 @@ library(Matrix)
 # After identifying SD<1 from Distribution_analysis_of_genes.R --> SDMoreThanOnelog2FC_MatrixCounts
 
 # data <- CreateSeuratObject(counts = pearson) # co-expression network with pearson --> Computerome 2.0
+# data <- CreateSeuratObject(counts = matrix_counts) # cell types - osteoclasts
 data <- CreateSeuratObject(counts = log2FC_MatrixCounts)
 data <- CreateSeuratObject(counts = SDMoreThanOnelog2FC_MatrixCounts)
 # data[["percent.mt"]] <- PercentageFeatureSet(data, pattern = "^MT-")
@@ -21,7 +22,7 @@ data <- CreateSeuratObject(counts = SDMoreThanOnelog2FC_MatrixCounts)
 
 all.genes <- rownames(data)
 data <- ScaleData(data, do.scale =  F, do.center = F, features = all.genes)
-data <- FindVariableFeatures(object = data, selection.method = 'mvp') #mvp becaue of error in log
+data <- FindVariableFeatures(object = data, selection.method = 'mvp') #mvp because of error in log
 
 # data <- FindVariableFeatures(object = data)
 # data <- RunPCA(data, features = VariableFeatures(object = data) )
@@ -30,7 +31,7 @@ data <- RunPCA(data, npcs = 50, features = VariableFeatures(object = data))
 # print(data[["pca"]], dims = 1:5, nfeatures = 5)
 # DimPlot(data, reduction = "pca")
 data <- FindNeighbors(data, dims = 1:15)
-data <- FindClusters(data, resolution = 0.5,  algorithm= 1) # color in Seurat umap output
+data <- FindClusters(data, resolution = 0.5, algorithm= 1) # color in Seurat umap output
 
 data <- RunUMAP(data, dims = 1:50, n.components = 3L)
 # DimPlot(data, reduction = "umap", split.by = "seurat_clusters")
@@ -48,6 +49,5 @@ cielab(umap_dist) # cielab_function
 # umap_dist <- lrgb
 # lrgb <- Lab2RGB(Lab)
 
-
-
+# data_umap_coord <- subset(data_umap_coord, data_umap_coord$UMAP_1>=(-10))
 
