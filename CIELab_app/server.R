@@ -7,104 +7,18 @@
 #    http://shiny.rstudio.com/
 #
 
-library(shiny)
-library(scRNAseq)
-library(Matrix)
-library(dplyr)
-library(Seurat)
-library(patchwork)
-library(rgl)
-library(geometry) # faces
-library(ptinpoly) # pip3d
-# '1' indicates that the point is contained in the polyhedron.
-# '0' indicates that the point lies exactly on the surface of the polyhedron.
-# '-1' indicates that the point lies outside the polyhedron.
-library(pracma) # distmat
-library(plotly)
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output) {
-    ColorSpacePolygon <- function(ColorSpace){
-        RGB2Lab <- function(mat) {
-            # cast mat in case of a single numeric vector
-            mat <- matrix(mat, ncol=3)
-            # input should be a matrix with R,G and B as columns in [0,1], and columnwise pixels as rows.
-            # RGB -> XYZ
-            thres1 <- 0.04045
-            M <- c(0.412453, 0.357580, 0.180423,
-                   0.212671, 0.715160, 0.072169,
-                   0.019334, 0.119193, 0.950227)
-            M <- matrix(M, nrow=3, byrow=TRUE)
-            matthres <- mat > thres1
-            mat <- matthres * ((mat + 0.055) / 1.055) ^ 2.2 + (!matthres) * mat / 12.92
-            xyz <- mat %*% t(M)
-
-            # XYZ -> Lab
-            thres2 <- 0.008856
-            xyz <- sweep(xyz, 2, c(0.950456,1,1.088754), "/")
-            #yalone <- xyz[,2]
-            #y3 <- yalone^(1/3)
-            xyzthres <- xyz > thres2
-            xyz <- xyzthres * xyz^(1/3) + (!xyzthres) * (7.787*xyz+16/116)
-            #L <- xyzthres[,2] * (116*y3-16) + (!xyzthres[,2]) * (903.3*yalone)
-            L <- 116 * xyz[,2] - 16
-            a <- 500 * (xyz[,1] - xyz[,2])
-            b <- 200 * (xyz[,2] - xyz[,3])
-            return(cbind(L,a,b))
-        }
-        RGBtoLabCoords <- as.data.frame(RGB2Lab(as.matrix(ColorSpace)/255)) # RGB space
-        ch <- chull(as.matrix(RGBtoLabCoords))
-        polygon <- as.matrix(RGBtoLabCoords)[c(ch, ch[1]), ] # Convex that cloud should fit in
-        return(polygon)
-    } # Switch colorspaces -- e.g. Fit sRGB (box) into the CIELab color space
-
-    UMAPConvex <- function(Query){
-        ch_cloud <- chull(as.matrix(Query))
-        ConvexCloud <- as.matrix(Query)[c(ch_cloud, ch_cloud[1]), ] # Convex of cloud
-        return(ConvexCloud)
-    } # Create a Convex Hull from the UMAP
-
-    Rotation <- function(ConvexCloud, RotL, Rota, Rotb){
-        ConvexCloud <- rotate3d(obj = ConvexCloud, angle = RotL, x = 1, y = 0, z = 0)
-        ConvexCloud <- rotate3d(obj = ConvexCloud, angle = Rota, x = 0, y = 1, z = 0)
-        ConvexCloud <- rotate3d(obj = ConvexCloud, angle = Rotb, x = 0, y = 0, z = 1)
-        return(ConvexCloud)
-    }
-
-    Translation <- function(ConvexCloud, TrL, Tra, Trb){
-        ConvexCloud <- translate3d(ConvexCloud, TrL, Tra, Trb)
-        return(ConvexCloud)
-    }
-
-    Scaling <- function(ConvexCloud, S){
-        ConvexCloud <- scale3d(ConvexCloud, S, S, S)
-        return(ConvexCloud)
-    }
-
-    Distance <- function(S, RotL, Rota, Rotb,  TrL, Tra, Trb, Query, polygon, faces){
-        ConvexCloud <- NewConvexCloud(S, RotL, Rota, Rotb,  TrL, Tra, Trb, Query)
-        point_in_space <- pip3d(polygon, faces, ConvexCloud)
-        outside <- ConvexCloud[which(point_in_space==-1), ]
-        # print(outside)
-        if(length(outside) == 0){
-            dist <- 0
-        } else {
-            dist_mat <- distmat(polygon, outside)
-            dist <- as.data.frame(apply(dist_mat,2,min))
-        }
-        return(dist)
-    } # Gives me the distance of the points from the Polygon
-
-    MasterFunction <- function(param, data, polygon, faces){
-        X <- Distance(param[1],param[2],param[3],param[4],param[5],param[6],param[7], data, polygon, faces) # S, RotL, Rota, Rotb,  TrL, Tra, Trb
-        a <- 1
-        f <- (a*param[1]) - sum(X^2)
-        return(f)
-    }
+    
+    source('~/Documents/Documents – SUN1012692/GitHub/CIELAB/global.R', local = TRUE)
+    polygon <- ColorSpacePolygon(RGB_space)
     
     myvals <- reactiveValues(
         umap_dist = NULL,
-        start.values = NULL
+        start.values = NULL,
+        optional.start.values = NULL,
+        simplex_vectors = NULL
     )
     
     datasetInput <- reactive({
@@ -149,8 +63,9 @@ shinyServer(function(input, output) {
             # log2FC_MatrixCounts <- log2(FC_MatrixCounts)
 
             # 1
-            # log2FC_MatrixCounts <- log2FC_MatrixCounts_tc[1:500,1:500]
-            log2FC_MatrixCounts <- log2FC_MatrixCounts_tc
+            log2FC_MatrixCounts <- log2FC_MatrixCounts_tc[1:500,1:500]
+            # log2FC_MatrixCounts <- log2FC_MatrixCounts_tc
+            # log2FC_MatrixCounts_tc <- data.frame(read.delim("~/Documents/Documents – SUN1012692/GitHub/CIELAB/log2FC_MatrixCounts_tc.tsv"))
             # log2FC_MatrixCounts <- data.frame(read.delim("~/Documents/GitHub/CIELAB/log2FC_MatrixCounts_tc.tsv"))
             # print(log2FC_MatrixCounts[1:10,1:10])
             print("1")
@@ -161,35 +76,35 @@ shinyServer(function(input, output) {
             }
             colnames(SDMoreThanOnelog2FC_MatrixCounts) <- colnames(log2FC_MatrixCounts)
 
-
             SDMoreThanOnelog2FC_MatrixCounts <- select(as.data.frame(log2FC_MatrixCounts),
                                                        -c(names(which(SDMoreThanOnelog2FC_MatrixCounts[1,]<1))))
-
+            # print(SDMoreThanOnelog2FC_MatrixCounts)
             data <- CreateSeuratObject(counts = SDMoreThanOnelog2FC_MatrixCounts)
-
+            
             all.genes <- rownames(data)
             data <- ScaleData(data, do.scale =  F, do.center = F, features = all.genes)
+            
             data <- FindVariableFeatures(object = data, selection.method = 'mvp') #mvp because of error in log
-
+            
             data <- RunPCA(data, npcs = 50, features = VariableFeatures(object = data))
             data <- FindNeighbors(data, dims = 1:15)
             data <- FindClusters(data, resolution = 0.5, algorithm= 1) # color in Seurat umap output
-
+            
             data <- RunUMAP(data, dims = 1:50, n.components = 3L)
             # DimPlot(data, reduction = "umap")
-
+            
             data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
             umap_dist <- data_umap_coord
             myvals$umap_dist <- umap_dist
             # print(myvals$umap_dist)
         }
-    })
-    observe({
+        
         if(input$dataset == "GSE75748_cell_type"){
             # 2
             # log2FC_MatrixCounts <- log2FC_MatrixCounts_ct
-            # log2FC_MatrixCounts_ct <- data.frame(read.delim("~/Documents/GitHub/CIELAB/log2FC_MatrixCounts_ct.tsv"))
-            log2FC_MatrixCounts <- data.frame(read.delim("~/Documents/GitHub/CIELAB/log2FC_MatrixCounts_ct.tsv"))
+            log2FC_MatrixCounts <- log2FC_MatrixCounts_ct[1:1000,1:1000]
+            # log2FC_MatrixCounts_ct <- data.frame(read.delim("~/Documents/Documents – SUN1012692/GitHub/CIELAB/log2FC_MatrixCounts_ct.tsv"))
+            # log2FC_MatrixCounts <- data.frame(read.delim("~/Documents/GitHub/CIELAB/log2FC_MatrixCounts_ct.tsv"))
             print("2")
             SDMoreThanOnelog2FC_MatrixCounts <- c()
             for(i in 1:ncol(log2FC_MatrixCounts)){
@@ -197,24 +112,24 @@ shinyServer(function(input, output) {
                 SDMoreThanOnelog2FC_MatrixCounts <- cbind(SDMoreThanOnelog2FC_MatrixCounts, std)
             }
             colnames(SDMoreThanOnelog2FC_MatrixCounts) <- colnames(log2FC_MatrixCounts)
-
-
+            
+            
             SDMoreThanOnelog2FC_MatrixCounts <- select(as.data.frame(log2FC_MatrixCounts),
                                                        -c(names(which(SDMoreThanOnelog2FC_MatrixCounts[1,]<1))))
-
+            
             data <- CreateSeuratObject(counts = SDMoreThanOnelog2FC_MatrixCounts)
-
+            
             all.genes <- rownames(data)
             data <- ScaleData(data, do.scale =  F, do.center = F, features = all.genes)
             data <- FindVariableFeatures(object = data, selection.method = 'mvp') #mvp because of error in log
-
+            
             data <- RunPCA(data, npcs = 50, features = VariableFeatures(object = data))
             data <- FindNeighbors(data, dims = 1:15)
             data <- FindClusters(data, resolution = 0.5, algorithm= 1) # color in Seurat umap output
-
+            
             data <- RunUMAP(data, dims = 1:50, n.components = 3L)
             # DimPlot(data, reduction = "umap")
-
+            
             data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
             umap_dist <- data_umap_coord
             
@@ -222,70 +137,29 @@ shinyServer(function(input, output) {
         }
     })
     
-    
     observe({
         umap_dist <- myvals$umap_dist 
-        WL <- input$weightL
-        Wa <- input$weightA
-        Wb <- input$weightB
+        input$weightButton
         
-        ColorSpacePolygon <- function(ColorSpace){
-            RGB2Lab <- function(mat) {
-                # cast mat in case of a single numeric vector
-                mat <- matrix(mat, ncol=3)
-                # input should be a matrix with R,G and B as columns in [0,1], and columnwise pixels as rows.
-                # RGB -> XYZ
-                thres1 <- 0.04045
-                M <- c(0.412453, 0.357580, 0.180423,
-                       0.212671, 0.715160, 0.072169,
-                       0.019334, 0.119193, 0.950227)
-                M <- matrix(M, nrow=3, byrow=TRUE)
-                matthres <- mat > thres1
-                mat <- matthres * ((mat + 0.055) / 1.055) ^ 2.2 + (!matthres) * mat / 12.92
-                xyz <- mat %*% t(M)
-                
-                # XYZ -> Lab
-                thres2 <- 0.008856
-                xyz <- sweep(xyz, 2, c(0.950456,1,1.088754), "/")
-                #yalone <- xyz[,2]
-                #y3 <- yalone^(1/3)
-                xyzthres <- xyz > thres2
-                xyz <- xyzthres * xyz^(1/3) + (!xyzthres) * (7.787*xyz+16/116)
-                #L <- xyzthres[,2] * (116*y3-16) + (!xyzthres[,2]) * (903.3*yalone)
-                L <- 116 * xyz[,2] - 16
-                a <- 500 * (xyz[,1] - xyz[,2])
-                b <- 200 * (xyz[,2] - xyz[,3])
-                return(cbind(L,a,b))
-            }
-            RGBtoLabCoords <- as.data.frame(RGB2Lab(as.matrix(ColorSpace)/255)) # RGB space
-            ch <- chull(as.matrix(RGBtoLabCoords))
-            polygon <- as.matrix(RGBtoLabCoords)[c(ch, ch[1]), ] # Convex that cloud should fit in
-            return(polygon)
-        } # Switch colorspaces -- e.g. Fit sRGB (box) into the CIELab color space
+        WL <- isolate(input$weightL)
+        Wa <- isolate(input$weightA)
+        Wb <- isolate(input$weightB)
         
-        UMAPConvex <- function(Query){
-            ch_cloud <- chull(as.matrix(Query))
-            ConvexCloud <- as.matrix(Query)[c(ch_cloud, ch_cloud[1]), ] # Convex of cloud
-            return(ConvexCloud)
-        } # Create a Convex Hull from the UMAP
-        
+        #--- Functions ---#
         Rotation <- function(ConvexCloud, RotL, Rota, Rotb){
             ConvexCloud <- rotate3d(obj = ConvexCloud, angle = RotL, x = 1, y = 0, z = 0)
             ConvexCloud <- rotate3d(obj = ConvexCloud, angle = Rota, x = 0, y = 1, z = 0)
             ConvexCloud <- rotate3d(obj = ConvexCloud, angle = Rotb, x = 0, y = 0, z = 1)
             return(ConvexCloud)
         }
-        
         Translation <- function(ConvexCloud, TrL, Tra, Trb){
             ConvexCloud <- translate3d(ConvexCloud, TrL, Tra, Trb)
             return(ConvexCloud)
         }
-        
         Scaling <- function(ConvexCloud, S){
             ConvexCloud <- scale3d(ConvexCloud, S, S, S)
             return(ConvexCloud)
         }
-        
         Distance <- function(S, RotL, Rota, Rotb,  TrL, Tra, Trb, Query, polygon, faces){
             ConvexCloud <- NewConvexCloud(S, RotL, Rota, Rotb,  TrL, Tra, Trb, Query)
             point_in_space <- pip3d(polygon, faces, ConvexCloud)
@@ -299,14 +173,12 @@ shinyServer(function(input, output) {
             }
             return(dist)
         } # Gives me the distance of the points from the Polygon
-        
         MasterFunction <- function(param, data, polygon, faces){
             X <- Distance(param[1],param[2],param[3],param[4],param[5],param[6],param[7], data, polygon, faces) # S, RotL, Rota, Rotb,  TrL, Tra, Trb
             a <- 1
             f <- (a*param[1]) - sum(X^2)
             return(f)
         }
-        
         NewConvexCloud <- function(S, RotL, Rota, Rotb,  TrL, Tra, Trb, Query){
             ConvexCloud <- Rotation(Query, RotL, Rota, Rotb)
             ConvexCloud <- Scaling(ConvexCloud, S)
@@ -326,9 +198,9 @@ shinyServer(function(input, output) {
             }
             return(ConvexCloud)
         } # Transform the UMAP Convex to otpimize it
+        #---#
         
         dat <- UMAPConvex(umap_dist)
-        polygon <- ColorSpacePolygon(RGB_space)
         faces <- convhulln(polygon, return.non.triangulated.facets = T)
         
         #------ Initial Guess ---------------------------------------------------------#
@@ -405,9 +277,62 @@ shinyServer(function(input, output) {
         S <- MaxScalingFactor
         
         # Simplex optimizer
+        
         set.seed(123)
+        angle <- 1
         start.values <- c(S , pi/4 ,pi/4, pi/4, TrL, Tra , Trb) # S, RotL, Rota, Rotb,  TrL, Tra, Trb
+        simplex_vectors <- c()
         k <- c()
+        
+        
+        # cores=8
+        # cores=detectCores()-1
+        # # library(doFuture)
+        # registerDoFuture()
+        # plan(multiprocess)
+        # 
+        # # cl <- makeCluster(cores[1]-1) #not to overload your computer
+        # # registerDoParallel(cl)
+        # stopCluster(cl)
+        # # library(future.apply)
+        # # plan(multiprocess) ## => parallelize on your local computer
+        # # 
+        # start_time <- Sys.time()
+        # print("start_time")
+        # print(start_time)
+        # 
+        # Simplex_optim <- foreach(x = cores) %dopar% {
+        #   for(i in 1:25){
+        #     tmp <- optim(par = start.values,
+        #                method = "Nelder-Mead",
+        #                MasterFunction,
+        #                data = dat,
+        #                polygon = polygon,
+        #                faces = faces,
+        #                control=list(fnscale=-1, maxit=1000)) #, trace=T
+        # 
+        #   k[[i]] <- tmp
+        #   angle <- angle + 0.5
+        #   start.values <- c(start.values[1], start.values[2]+(pi/angle), start.values[3], start.values[4], start.values[5], start.values[6], start.values[7]) # mirror rotation in x
+        # 
+        #   simplex_vectors <- rbind(simplex_vectors, k[[i]]$par)
+        # 
+        #   }
+        #   return(simplex_vectors)
+        # }
+        # 
+        # Simplex_optim <- Simplex_optim[[1]]
+        # print(Simplex_optim[1])
+        # end_time <- Sys.time()
+        # print(end_time)
+        # myvals$start.values <- Simplex_optim[which(Simplex_optim[,1] == max(Simplex_optim[,1]))[1], ]
+        # myvals$simplex_vectors <- Simplex_optim
+         
+        
+        # start_time <- Sys.time()
+        # print("start_time")
+        # print(start_time)
+
         for(i in 1:25){
             Simplex_optim <- optim(par = start.values,
                                    method = "Nelder-Mead",
@@ -416,31 +341,69 @@ shinyServer(function(input, output) {
                                    polygon = polygon,
                                    faces = faces,
                                    control=list(fnscale=-1, maxit=1000)) #, trace=T
-            k[[i]] <- Simplex_optim
-            if((i-1)!=0){
-                if(k[[i]]$value >= k[[i-1]]$value){
-                    start.values <- k[[i]]$par
-                } else {
-                    start.values <- k[[i-1]]$par
-                    k[[i]] <- k[[i-1]]
-                }
-                if(i%%2==0){
-                    start.values <- c(k[[i]]$par[1], k[[i]]$par[2]+(pi/4), k[[i]]$par[3], k[[i]]$par[4], k[[i]]$par[5], k[[i]]$par[6], k[[i]]$par[7]) # mirror rotation in x
-                }
-            }
-            result <- k[[i]]
-        } # loop around Simplex algorithm
-        
-        myvals$start.values <- result$par
+        k[[i]] <- Simplex_optim
+        angle <- angle + 0.5
+        start.values <- c(start.values[1], start.values[2]+(pi/angle), start.values[3], start.values[4], start.values[5], start.values[6], start.values[7]) # mirror rotation in x
+        simplex_vectors <- rbind(simplex_vectors, k[[i]]$par)
+        }
+        # print(simplex_vectors)
+        myvals$start.values <- simplex_vectors[which(simplex_vectors[,1] == max(simplex_vectors[,1]))[1], ]
+        myvals$simplex_vectors <- simplex_vectors
+
+        # end_time <- Sys.time()
+        # print(end_time)
+      
+        print("~End~")  
+
+    })
+    
+    
+    output$table <- renderDataTable({
+      req(input$weightButton)
+      start.values <- myvals$start.values
+      simplex_vectors <- myvals$simplex_vectors
+
+      optional_values <- c()
+      for(i in 1:nrow(simplex_vectors)){
+        vector_dist <- distmat(start.values[1], simplex_vectors[i,1])
+        if(vector_dist >= 5) optional_values <- rbind(optional_values, simplex_vectors[i,])
+      }
+      vector_final_ordered <- as.data.frame(optional_values[order(optional_values[,1], decreasing = T),])
+      
+      datatable(vector_final_ordered, selection = c("single"), colnames = NULL)
+        })
+
+    output$list_of_parameters <- renderPrint({
+      req(input$table_rows_selected)
+      start.values <- myvals$start.values
+      simplex_vectors <- myvals$simplex_vectors
+      
+      s <- input$table_rows_selected
+      optional_values <- c()
+      for(i in 1:nrow(simplex_vectors)){
+        vector_dist <- distmat(start.values[1], simplex_vectors[i,1])
+        if(vector_dist >= 5) optional_values <- rbind(optional_values, simplex_vectors[i,])
+      }
+      vector_final_ordered <- as.data.frame(optional_values[order(optional_values[,1], decreasing = T),])
+      
+      myvals$optional.start.values <- vector_final_ordered[s,]
     })
     
     
     
+
     output$plotly_plot <- renderPlotly({
+        input$scalingButton
+      
+      if(!is.null(input$table_rows_selected)){
+        start.values <- as.numeric(myvals$optional.start.values)
+      } else {
         start.values <- myvals$start.values
+      }
+      
         umap_dist <- myvals$umap_dist 
         
-    NewUMAP <- Scaling(umap_dist, start.values[1]*input$scaling)
+    NewUMAP <- Scaling(umap_dist, start.values[1]*isolate(input$scaling))
     NewUMAP <- Rotation(as.matrix(NewUMAP), start.values[2]  , start.values[3] , start.values[4])
     NewUMAP <- Translation(NewUMAP, start.values[5] , start.values[6] ,start.values[7])
     
@@ -490,30 +453,43 @@ shinyServer(function(input, output) {
         yaxis = axy,
         zaxis = axz
     )) 
-    
     fig
     })
     
     
     
     output$satellite1 <- renderPlot({
+        input$scalingButton
         umap_dist <- myvals$umap_dist 
-        start.values <- myvals$start.values
+        
+        if(!is.null(input$table_rows_selected)){
+          start.values <- as.numeric(myvals$optional.start.values)
+        } else {
+          start.values <- myvals$start.values
+        }
+        
         ConvexCloud <- UMAPConvex(umap_dist)
-        ConvexCloud <- Scaling(ConvexCloud, start.values[1]*input$scaling)
+        ConvexCloud <- Scaling(ConvexCloud, start.values[1]*isolate(input$scaling))
         ConvexCloud <- Rotation(ConvexCloud,  start.values[2]  , start.values[3] , start.values[4])
         ConvexCloud <- Translation(ConvexCloud, start.values[5] , start.values[6] ,start.values[7])
-
         plot(as.matrix(ConvexCloud[,c(1,2)]), pch=19, xlim = c(-100,100), ylim = c(-100,100))
         lines(polygon[, c(1,2)], col="blue") # Cielab
+
 
     })
     
     output$satellite2 <- renderPlot({
+        input$scalingButton
         umap_dist <- myvals$umap_dist 
-        start.values <- myvals$start.values
+        
+        if(!is.null(input$table_rows_selected)){
+          start.values <- as.numeric(myvals$optional.start.values)
+        } else {
+          start.values <- myvals$start.values
+        }
+        
         ConvexCloud <- UMAPConvex(umap_dist)
-        ConvexCloud <- Scaling(ConvexCloud, start.values[1]*input$scaling)
+        ConvexCloud <- Scaling(ConvexCloud, start.values[1]*isolate(input$scaling))
         ConvexCloud <- Rotation(ConvexCloud,  start.values[2]  , start.values[3] , start.values[4])
         ConvexCloud <- Translation(ConvexCloud, start.values[5] , start.values[6] ,start.values[7])
 

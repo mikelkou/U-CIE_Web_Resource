@@ -109,11 +109,15 @@ MasterFunction <- function(param, data, polygon, faces){
 # MasterFunction(param = c(start.values), dat, polygon, faces)
 
 # data points to be fitted
+# umap_dist <- read.delim("~/Desktop/umap_dist.tsv")
+# cielab(umap_dist)
 dat <- UMAPConvex(umap_dist)
 polygon <- ColorSpacePolygon(RGB_space)
 faces <- convhulln(polygon, return.non.triangulated.facets = T)
 
 # Simplex optimizer
+
+# According to NEW start values every loop
 set.seed(123)
 start.values <- c(S , pi/4 ,pi/4, pi/4, TrL, Tra , Trb) # S, RotL, Rota, Rotb,  TrL, Tra, Trb
 k <- c()
@@ -140,6 +144,56 @@ for(i in 1:25){
   result <- k[[i]]
 } # loop around Simplex algorithm
 print(result)
+
+
+
+# According to INITIAL start values every loop
+set.seed(123)
+angle <- 1
+simplex_vectors <- c()
+start.values <- c(S , pi/4 ,pi/4, pi/4, TrL, Tra , Trb) # S, RotL, Rota, Rotb,  TrL, Tra, Trb
+k <- c()
+
+# library(parallel)
+# library(MASS)
+
+# library(foreach)
+# library(doParallel)
+
+numCores <- detectCores()
+
+registerDoParallel(numCores)
+# system.time(
+
+# foreach(i=1:25) %dopar% {
+for(i in 1:25){
+  Simplex_optim <- optim(par = start.values,
+                         method = "Nelder-Mead",
+                         MasterFunction,
+                         data = dat,
+                         polygon = polygon,
+                         faces = faces,
+                         control=list(fnscale=-1, maxit=1000)) #, trace=T
+  k[[i]] <- Simplex_optim
+  angle <- angle + 0.5
+  start.values <- c(start.values[1], start.values[2]+(pi/angle), start.values[3], start.values[4], start.values[5], start.values[6], start.values[7]) # mirror rotation in x
+  simplex_vectors <- rbind(simplex_vectors, k[[i]]$par)
+# }
+}
+# stopImplicitCluster()
+
+
+# )
+
+# library(matrixStats)
+start.values <- simplex_vectors[which(simplex_vectors[,1] == max(simplex_vectors[,1]))[1], ]
+
+optional_values <- c()
+for(i in 1:nrow(simplex_vectors)){
+  vector_dist <- distmat(start.values[1], simplex_vectors[i,1])
+  if(vector_dist >= 3) optional_values <- rbind(optional_values, simplex_vectors[i,])
+}
+
 
 
 # Plot after transformations
@@ -245,6 +299,7 @@ plot(a)
 
 #------ Initial Guess ---------------------------------------------------------#
 #--- Translation ---#
+# umap_dist <- read.delim("~/Desktop/umap_dist.tsv")
 centroidval_color_space <- colMeans(polygon) # centroid of color space
 centroidval_cloud <- colMeans(UMAPConvex(umap_dist)) # centroid of cloud
 
