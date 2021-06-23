@@ -101,8 +101,8 @@ shinyServer(function(input, output) {
         
         if(input$dataset == "GSE75748_cell_type"){
             # 2
-            # log2FC_MatrixCounts <- log2FC_MatrixCounts_ct
-            log2FC_MatrixCounts <- log2FC_MatrixCounts_ct[1:1000,1:1000]
+            log2FC_MatrixCounts <- log2FC_MatrixCounts_ct
+            # log2FC_MatrixCounts <- log2FC_MatrixCounts_ct[1:1000,1:1000]
             # log2FC_MatrixCounts_ct <- data.frame(read.delim("~/Documents/Documents – SUN1012692/GitHub/CIELAB/log2FC_MatrixCounts_ct.tsv"))
             # log2FC_MatrixCounts <- data.frame(read.delim("~/Documents/GitHub/CIELAB/log2FC_MatrixCounts_ct.tsv"))
             print("2")
@@ -368,9 +368,19 @@ shinyServer(function(input, output) {
         vector_dist <- distmat(start.values[1], simplex_vectors[i,1])
         if(vector_dist >= 5) optional_values <- rbind(optional_values, simplex_vectors[i,])
       }
-      vector_final_ordered <- as.data.frame(optional_values[order(optional_values[,1], decreasing = T),])
       
-      datatable(vector_final_ordered, selection = c("single"), colnames = NULL)
+      
+      if(length(optional_values)!=0){
+        vector_final_ordered <- as.data.frame(optional_values)
+        if(nrow(vector_final_ordered)==1){
+          vector_final_ordered <- as.data.frame(optional_values)
+        } else vector_final_ordered <- as.data.frame(optional_values[order(optional_values[,1], decreasing = T),])
+        
+        vector_final_ordered <- round(vector_final_ordered,2)
+        datatable(vector_final_ordered, selection = c("single"), colnames = c("Scaling factor", "Rotation L*", "Rotation a*", "Rotation b*", "Translation L*", "Translation a*", "Translation b*"))
+      }
+      
+      
         })
 
     output$list_of_parameters <- renderPrint({
@@ -384,12 +394,17 @@ shinyServer(function(input, output) {
         vector_dist <- distmat(start.values[1], simplex_vectors[i,1])
         if(vector_dist >= 5) optional_values <- rbind(optional_values, simplex_vectors[i,])
       }
-      vector_final_ordered <- as.data.frame(optional_values[order(optional_values[,1], decreasing = T),])
       
-      myvals$optional.start.values <- vector_final_ordered[s,]
+      if(length(optional_values)!=0){
+        vector_final_ordered <- as.data.frame(optional_values)
+        if(nrow(vector_final_ordered)==1){
+          vector_final_ordered <- as.data.frame(optional_values)
+        } else vector_final_ordered <- as.data.frame(optional_values[order(optional_values[,1], decreasing = T),])
+        vector_final_ordered <- round(vector_final_ordered,2)  
+        myvals$optional.start.values <- vector_final_ordered[s,]
+      }
+      
     })
-    
-    
     
 
     output$plotly_plot <- renderPlotly({
@@ -425,13 +440,13 @@ shinyServer(function(input, output) {
     LABdata <- with(rawdata, LAB(Lstar, Astar, Bstar))
     
     axx <- list(nticks = 4,
-                title = "x")
+                title = "UMAP1")
     
     axy <- list(nticks = 4,
-                title = "y")
+                title = "UMAP2")
     
     axz <- list(nticks = 4,
-                title = "z")
+                title = "UMAP3")
     
     fig <- plot_ly(
         data = as.data.frame(umap_dist),
@@ -492,33 +507,14 @@ shinyServer(function(input, output) {
         ConvexCloud <- Scaling(ConvexCloud, start.values[1]*isolate(input$scaling))
         ConvexCloud <- Rotation(ConvexCloud,  start.values[2]  , start.values[3] , start.values[4])
         ConvexCloud <- Translation(ConvexCloud, start.values[5] , start.values[6] ,start.values[7])
-
+        
+        
+        
+        
         plot(as.matrix(ConvexCloud[,c(1,3)]), pch=19, xlim = c(-100,100), ylim = c(-100,100))
         lines(polygon[, c(1,3)], col="blue") # Cielab
 
     })
 
-
-    # ConvexCloud <- UMAPConvex(umap_dist)
-    # ConvexCloud <- Scaling(ConvexCloud, start.values[1])
-    # ConvexCloud <- Rotation(ConvexCloud,  start.values[2]  , start.values[3] , start.values[4])
-    # ConvexCloud <- Translation(ConvexCloud, start.values[5] , start.values[6] ,start.values[7])
-    # 
-    # plot(as.matrix(ConvexCloud[,c(1,2)]), pch=19, xlim = c(-100,100), ylim = c(-100,100))
-    # lines(polygon[, c(1,2)], col="blue") # Cielab
-    # 
-    # colnames(ConvexCloud) <- colnames(RGBtoLabCoords)
-    # a <- rbind(as.data.frame(RGBtoLabCoords), as.data.frame(ConvexCloud))
-    # a$colors <- as.factor(c(rep(1, nrow(RGBtoLabCoords)), rep(0, nrow(ConvexCloud))))
-    # 
-    # library(plotly)
-    # fig <- plot_ly(a, x = a[,1], y = a[,2], z = a[,3], color = a[,4], colors = c('#BF382A', '#0C4B8E'), mode='lines+markers',
-    #                line = list(width = 6), marker = list(size = 3.5))
-    # # fig <- fig %>% add_markers() # instead of lines
-    # fig <- fig %>% layout(scene = list(xaxis = list(title = 'L'),
-    #                                    yaxis = list(title = 'a'),
-    #                                    zaxis = list(title = 'b')))
-    # 
-    # fig
 
 })

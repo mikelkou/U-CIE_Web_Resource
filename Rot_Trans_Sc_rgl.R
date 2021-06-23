@@ -110,6 +110,8 @@ MasterFunction <- function(param, data, polygon, faces){
 
 # data points to be fitted
 # umap_dist <- read.delim("~/Desktop/umap_dist.tsv")
+write.table(umap_dist, "umap_dist.csv", col.names = T, row.names = T, sep = ",")
+a <- read.delim("umap_dist.csv")
 # cielab(umap_dist)
 dat <- UMAPConvex(umap_dist)
 polygon <- ColorSpacePolygon(RGB_space)

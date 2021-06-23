@@ -126,13 +126,13 @@ cielab <- function(umap_dist) {
   a <- hex(LABdata, fix = TRUE)
   
   axx <- list(nticks = 4,
-              title = "x")
+              title = "UMAP1")
   
   axy <- list(nticks = 4,
-              title = "y")
+              title = "UMAP2")
   
   axz <- list(nticks = 4,
-              title = "z")
+              title = "UMAP3")
   
   fig <- plot_ly(
     data = as.data.frame(umap_dist),
@@ -144,7 +144,7 @@ cielab <- function(umap_dist) {
     text = c(rownames(umap_dist)),
     # hoverinfo = 'text',
     marker = list(
-      color = hex(LABdata, fix = TRUE),
+      color = gray.colors(n = 1000),     #hex(LABdata, fix = TRUE),
       size = 3,
       width = 2
     )
