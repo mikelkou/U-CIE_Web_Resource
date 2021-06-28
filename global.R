@@ -14,6 +14,8 @@ library(ptinpoly) # pip3d
 library(pracma) # distmat
 library(plotly)
 library(DT)
+library(umap)
+
 
 # library(future)
 # library(promises)

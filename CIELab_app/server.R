@@ -18,28 +18,152 @@ shinyServer(function(input, output) {
         umap_dist = NULL,
         start.values = NULL,
         optional.start.values = NULL,
-        simplex_vectors = NULL
+        simplex_vectors = NULL,
+        uploaded_df = NULL,
+        NewUMAP = NULL
     )
     
-    datasetInput <- reactive({
-        switch(input$dataset,
-               # "GSE75748_time_course" = data.frame(read.csv("/Users/tgn531/Desktop/CBPP_22012021/Lars_Lab/single_cells/GSE75748_sc_time_course_ec.csv")),
-               # "GSE75748_cell_type" = data.frame(read.csv("/Users/tgn531/Desktop/CBPP_22012021/Lars_Lab/single_cells/GSE75748_sc_cell_type_ec.csv"))
-               # "GSE52529" = data.frame(read.delim("/Users/tgn531/Desktop/CBPP_22012021/Lars_Lab/single_cells/GSE52529_fpkm_matrix.txt"))
-               
-               # "GSE75748_time_course" = data.frame(read.delim("~/Documents/GitHub/CIELAB/log2FC_MatrixCounts_tc.tsv")),
-               # "GSE75748_cell_type" = data.frame(read.delim("~/Documents/GitHub/CIELAB/log2FC_MatrixCounts_ct.tsv"))
-             
-               "GSE75748_time_course" = 0,
-               "GSE75748_cell_type" = 1
-             
-
-               )
+    observe({ 
+      req(input$file1)
+      uploaded_df <- read.delim(input$file1$datapath,
+                              header = input$header,
+                              sep = input$sep,
+                              quote = input$quote)
+      
+    myvals$uploaded_df <- uploaded_df
+    })
+    
+    output$contents <- renderTable({
+      
+      # input$file1 will be NULL initially. After the user selects
+      # and uploads a file, head of that data file by default,
+      # or all rows if selected, will be shown.
+      
+      req(input$file1)
+      
+      # when reading semicolon separated files,
+      # having a comma separator causes `read.csv` to error
+      tryCatch(
+        {
+          df <- read.delim(input$file1$datapath,
+                         header = input$header,
+                         sep = input$sep,
+                         quote = input$quote)
+        },
+        error = function(e) {
+          # return a safeError if a parsing error occurs
+          stop(safeError(e))
+        }
+      )
+      
+      myvals$umap_dist <- df
+      # print(myvals$umap_dist)
+      if(input$disp == "head") {
+        return(head(df))
+      }
+      else {
+        return(df)
+      }
+      
     })
     
     
-    observeEvent(input$dataset, {
-        if(input$dataset == "GSE75748_time_course"){
+    observe({
+      if(input$dataset == "-"){
+        if(input$matrix == "-"){
+          myvals$umap_dist <- NULL
+        }
+        if(!is.null(myvals$uploaded_df) & input$matrix == 'Single-cells'){
+          
+              rownames(matrix_counts) <- matrix_counts[,1]
+              matrix_counts <- matrix_counts[,2:ncol(matrix_counts)]
+              matrix_counts <- data.matrix(matrix_counts) # must be a matrix object!
+
+              TransposedMatrixCounts <- t(matrix_counts)
+
+              cnt <- 0
+              FC_MatrixCounts <- c()
+              for(i in 1:ncol(TransposedMatrixCounts)){
+                  mean_col <- mean(TransposedMatrixCounts[,i])
+                  FC <-  (TransposedMatrixCounts[,i]+1)/(mean_col+1)
+                  FC_MatrixCounts <- cbind(FC_MatrixCounts, FC)
+
+                  cnt <- cnt + 1
+                  if(cnt %% 1000 == 0){
+                      print(cnt)
+              }
+          }
+          colnames(FC_MatrixCounts) <- rownames(matrix_counts)
+          log2FC_MatrixCounts <- log2(FC_MatrixCounts)
+          
+          print("---")
+          SDMoreThanOnelog2FC_MatrixCounts <- c()
+          for(i in 1:ncol(log2FC_MatrixCounts)){
+            std <- sd(log2FC_MatrixCounts[,i])
+            SDMoreThanOnelog2FC_MatrixCounts <- cbind(SDMoreThanOnelog2FC_MatrixCounts, std)
+          }
+          colnames(SDMoreThanOnelog2FC_MatrixCounts) <- colnames(log2FC_MatrixCounts)
+          
+          SDMoreThanOnelog2FC_MatrixCounts <- select(as.data.frame(log2FC_MatrixCounts),
+                                                     -c(names(which(SDMoreThanOnelog2FC_MatrixCounts[1,]<1))))
+         data <- CreateSeuratObject(counts = SDMoreThanOnelog2FC_MatrixCounts)
+
+         all.genes <- rownames(data)
+         data <- ScaleData(data, do.scale =  F, do.center = F, features = all.genes)
+
+         data <- FindVariableFeatures(object = data, selection.method = 'mvp') #mvp because of error in log
+
+         data <- RunPCA(data, npcs = 50, features = VariableFeatures(object = data))
+         data <- FindNeighbors(data, dims = 1:length(data@reductions$pca))
+         data <- FindClusters(data, resolution = 0.5, algorithm= 1) # color in Seurat umap output
+         
+         data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
+         umap_dist <- data_umap_coord
+         myvals$umap_dist <- umap_dist
+         # myvals$umap_dist <- myvals$uploaded_df
+         
+         print("Single cells done!")
+        } 
+      
+      if(!is.null(myvals$uploaded_df) & input$matrix == 'High Dimensional'){
+        data <- CreateSeuratObject(counts = myvals$uploaded_df)
+        all.genes <- rownames(data)
+        data <- ScaleData(data, do.scale =  F, do.center = F, features = all.genes)
+        data <- FindVariableFeatures(object = data, selection.method = 'mvp') #mvp because of error in log
+        data <- RunPCA(data, npcs = 50, features = VariableFeatures(object = data))
+        data <- FindNeighbors(data, dims = 1:length(data@reductions$pca))
+        data <- FindClusters(data, resolution = 0.5, algorithm= 1) # color in Seurat umap output
+        data <- RunUMAP(data, dims = 1:50, n.components = 3L)
+        data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
+        
+        data <- umap(myvals$uploaded_df, ret_nn = TRUE, n_neighbors = 5, n_components = 3) # library(uwot)
+        data_umap_coord <- as.data.frame(data$embedding)
+        umap_dist <- data_umap_coord
+        myvals$umap_dist <- umap_dist
+      }
+      if(!is.null(myvals$uploaded_df) & input$matrix == 'Distance matrix'){
+        data <- as.matrix(dist(myvals$uploaded_df))
+        data <- umap(data, input="dist", n_components = 3)
+        data_umap_coord <- as.data.frame(data$layout)
+        umap_dist <- data_umap_coord
+        myvals$umap_dist <- umap_dist
+      }
+      if(!is.null(myvals$uploaded_df) & input$matrix == '3D data'){
+        data <- CreateSeuratObject(counts = myvals$uploaded_df)
+        all.genes <- rownames(data)
+        
+        data <- RunUMAP(data, metric = 'precomputed', dims = 1:3, n.components = 3L)
+        
+        data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
+        umap_dist <- data_umap_coord
+        myvals$umap_dist <- umap_dist
+      }
+      }
+      
+      if(is.null(myvals$uploaded_df) & input$dataset == "-") {
+        myvals$umap_dist <- NULL
+      }
+      if(input$dataset == "GSE75748_time_course"){
 
             #     rownames(matrix_counts) <- matrix_counts[,1]
             #     matrix_counts <- matrix_counts[,2:ncol(matrix_counts)]
@@ -91,8 +215,7 @@ shinyServer(function(input, output) {
             data <- FindClusters(data, resolution = 0.5, algorithm= 1) # color in Seurat umap output
             
             data <- RunUMAP(data, dims = 1:50, n.components = 3L)
-            # DimPlot(data, reduction = "umap")
-            
+
             data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
             umap_dist <- data_umap_coord
             myvals$umap_dist <- umap_dist
@@ -128,7 +251,6 @@ shinyServer(function(input, output) {
             data <- FindClusters(data, resolution = 0.5, algorithm= 1) # color in Seurat umap output
             
             data <- RunUMAP(data, dims = 1:50, n.components = 3L)
-            # DimPlot(data, reduction = "umap")
             
             data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
             umap_dist <- data_umap_coord
@@ -137,8 +259,11 @@ shinyServer(function(input, output) {
         }
     })
     
+    
     observe({
         umap_dist <- myvals$umap_dist 
+        if(is.null(umap_dist)){}
+        else{
         input$weightButton
         
         WL <- isolate(input$weightL)
@@ -354,7 +479,7 @@ shinyServer(function(input, output) {
         # print(end_time)
       
         print("~End~")  
-
+        }
     })
     
     
@@ -406,9 +531,11 @@ shinyServer(function(input, output) {
       
     })
     
-
     output$plotly_plot <- renderPlotly({
-        input$scalingButton
+      umap_dist <- myvals$umap_dist
+      if(is.null(umap_dist)){}
+      else{
+      input$scalingButton
       
       if(!is.null(input$table_rows_selected)){
         start.values <- as.numeric(myvals$optional.start.values)
@@ -416,11 +543,11 @@ shinyServer(function(input, output) {
         start.values <- myvals$start.values
       }
       
-        umap_dist <- myvals$umap_dist 
-        
     NewUMAP <- Scaling(umap_dist, start.values[1]*isolate(input$scaling))
     NewUMAP <- Rotation(as.matrix(NewUMAP), start.values[2]  , start.values[3] , start.values[4])
     NewUMAP <- Translation(NewUMAP, start.values[5] , start.values[6] ,start.values[7])
+    
+    myvals$NewUMAP <- NewUMAP
     
     # Colors to the New UMAP cloud
     Lab <- NewUMAP
@@ -469,52 +596,82 @@ shinyServer(function(input, output) {
         zaxis = axz
     )) 
     fig
+      }
     })
     
     
     
-    output$satellite1 <- renderPlot({
-        input$scalingButton
+    output$satellite1 <- renderPlotly({
         umap_dist <- myvals$umap_dist 
-        
+        if(is.null(umap_dist)){}
+        else{
+          input$scalingButton
+          
         if(!is.null(input$table_rows_selected)){
           start.values <- as.numeric(myvals$optional.start.values)
         } else {
           start.values <- myvals$start.values
         }
         
-        ConvexCloud <- UMAPConvex(umap_dist)
-        ConvexCloud <- Scaling(ConvexCloud, start.values[1]*isolate(input$scaling))
-        ConvexCloud <- Rotation(ConvexCloud,  start.values[2]  , start.values[3] , start.values[4])
-        ConvexCloud <- Translation(ConvexCloud, start.values[5] , start.values[6] ,start.values[7])
-        plot(as.matrix(ConvexCloud[,c(1,2)]), pch=19, xlim = c(-100,100), ylim = c(-100,100))
-        lines(polygon[, c(1,2)], col="blue") # Cielab
+        ConvexCloud <- myvals$NewUMAP
+        # ConvexCloud <- UMAPConvex(umap_dist)
+        # ConvexCloud <- Scaling(ConvexCloud, start.values[1]*isolate(input$scaling))
+        # ConvexCloud <- Rotation(ConvexCloud,  start.values[2]  , start.values[3] , start.values[4])
+        # ConvexCloud <- Translation(ConvexCloud, start.values[5] , start.values[6] ,start.values[7])
+        
+        
+        colordata = structure(
+          list(
+            Lstar = c(polygon[, 1]),
+            Astar = c(polygon[, 2]),
+            Bstar = c(polygon[, 3])
+          ),
+          .Names = c("Lstar", "Astar", "Bstar"),
+          row.names = c(rownames(umap_dist)[1:nrow(polygon)]),
+          class = "data.frame"
+        )
 
+        LABdata_convex <- with(colordata, LAB(Lstar, Astar, Bstar))
+        polygon2 <- as.data.frame(cbind(polygon, hex(LABdata_convex, fix = TRUE)))
+        
+        par(mfrow=c(1,2))
+        # plot(as.matrix(ConvexCloud[,c(1,2)]), pch=19, xlab="L", ylab="a", xlim = c(-100,100), ylim = c(-100,100))
+        
+        # lines(polygon[, c(1,2)], col=polygon[,4]) # Cielab
+        # plot(polygon[, 1], polygon[,2], col=polygon[,4]) # Cielab
+        
+        fig <- plot_ly(
+          data = as.data.frame(ConvexCloud),
+          x = ConvexCloud[, 1],
+          y = ConvexCloud[, 2],
+          # z = polygon[, 3],
+          type = "scatter",
+          mode = "markers",
+          # text = c(rownames(umap_dist)),
+          # hoverinfo = 'text',
+          marker = list(
+            color = polygon2[,4],
+            size = 10,
+            width = 2
+          )
+        )
+        
+        # fig <- fig %>% add_markers(ConvexCloud, x = ConvexCloud[,1], y = ConvexCloud[,2], z = ConvexCloud[,3])
+        
+        fig <- fig %>% add_polygons(polygon, x = polygon[, 1], y = polygon[, 2])
+        fig
 
+        # plot(as.matrix(ConvexCloud[,c(1,3)]), pch=19, xlab="L", ylab="b", xlim = c(-100,100), ylim = c(-100,100))
+        # lines(polygon[, c(1,3)], col="blue") # Cielab
+}
     })
+
     
-    output$satellite2 <- renderPlot({
-        input$scalingButton
-        umap_dist <- myvals$umap_dist 
-        
-        if(!is.null(input$table_rows_selected)){
-          start.values <- as.numeric(myvals$optional.start.values)
-        } else {
-          start.values <- myvals$start.values
-        }
-        
-        ConvexCloud <- UMAPConvex(umap_dist)
-        ConvexCloud <- Scaling(ConvexCloud, start.values[1]*isolate(input$scaling))
-        ConvexCloud <- Rotation(ConvexCloud,  start.values[2]  , start.values[3] , start.values[4])
-        ConvexCloud <- Translation(ConvexCloud, start.values[5] , start.values[6] ,start.values[7])
-        
-        
-        
-        
-        plot(as.matrix(ConvexCloud[,c(1,3)]), pch=19, xlim = c(-100,100), ylim = c(-100,100))
-        lines(polygon[, c(1,3)], col="blue") # Cielab
-
+    
+    observeEvent(input$openModal, {
+      showModal(
+        modalDialog(title = "Some title",
+                    p("Some information"))
+      )
     })
-
-
 })

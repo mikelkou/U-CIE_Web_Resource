@@ -14,26 +14,14 @@ source('~/Documents/Documents – SUN1012692/GitHub/CIELAB/global.R', local = TR
 
 sidebar <- dashboardSidebar(
     # sidebarMenu(id="tabs", sidebarMenuOutput("menu"))
-    sidebarMenu(menuItem("Umap", tabName = "umap", icon = icon("dashboard")),
-                menuItem("Satellites", icon = icon("th"), tabName = "widgets",
+    sidebarMenu(menuItem("Upload Files", tabName = "upload", icon = icon("dashboard")),
+                menuItem("UMAP", tabName = "umap", icon = icon("dashboard")),
+                menuItem("Satellites", icon = icon("th"), tabName = "satellites",
                          badgeLabel = "new", badgeColor = "green")
     )
 )
 
-# dashboardPage(skin = "purple",
-#     dashboardHeader(title = "U-CIE"),
-#     
-#     dashboardSidebar(
-#         # sidebarMenu(id="tabs", sidebarMenuOutput("menu"))
-#         sidebarMenu(menuItem("Dashboard", tabName = "dashboard", icon = icon("dashboard")),
-#                     menuItem("Widgets", icon = icon("th"), tabName = "widgets",
-#                              badgeLabel = "new", badgeColor = "green")
-#         )
-#     )
-#         
-#     ,
-#     
-    
+  
 body <- 
     dashboardBody(
         fluidPage(
@@ -41,12 +29,67 @@ body <-
     # Application title
     # titlePanel("U-CIE"),
     titlePanel(div(HTML("<strong>U-CIE</strong> <em> [/juː 'siː/] </em> "))),
-
-    tabItems(tabItem(tabName = "umap",
-                     # h2("Parameters and UMAP"),
+    
+    
+    
+    tabItems(tabItem(tabName = "upload",
+                     fileInput("file1", "Upload File",
+                               multiple = FALSE,
+                               accept = c("text/csv",
+                                          "text/comma-separated-values,text/plain",
+                                          ".csv")),
+                     
                      selectInput(inputId = "dataset",
-                                 label = "Choose a dataset:",
-                                 choices = c("GSE75748_time_course", "GSE75748_cell_type")),
+                                 label = "Example datasets:",
+                                 choices = c("-" ,"GSE75748_time_course", "GSE75748_cell_type")),
+                     
+                     
+                     
+                     # Horizontal line ----
+                     tags$hr(),
+                     
+                     # Input: Checkbox if file has header ----
+                     selectInput("matrix", "Type of Matrix:",
+                                  choices = c('-' = "-",
+                                              'Single-cells' = 'Single-cells',
+                                              'High Dimensional' = 'High Dimensional',
+                                              'Distance matrix'=  'Distance matrix',
+                                              '3D data' = '3D data'),
+                                  selected = '-'),
+                     
+                     # Input: Select separator ----
+                     checkboxInput("header", "Header", TRUE),
+                     
+                     radioButtons("sep", "Separator",
+                                  choices = c(Comma = ",",
+                                              Semicolon = ";",
+                                              Tab = "\t"),
+                                  selected = "\t"),
+                     
+                     # Input: Select quotes ----
+                     radioButtons("quote", "Quote",
+                                  choices = c(None = "",
+                                              "Double Quote" = '"',
+                                              "Single Quote" = "'"),
+                                  selected = '"'),
+                     
+                     # Horizontal line ----
+                     tags$hr(),
+                     
+                     # Input: Select number of rows to display ----
+                     radioButtons("disp", "Display",
+                                  choices = c(Head = "head",
+                                              All = "all"),
+                                  selected = "head"),
+                     tags$hr(),
+                     uiOutput("uploaded_dataset"),
+                     tableOutput("contents")
+                     
+                     
+    ),
+    
+    tabItem(tabName = "umap",
+                     # h2("Parameters and UMAP"),
                      sliderInput("weightL",
                                  "L* weight (Brightness):",
                                  min = 1,
@@ -84,11 +127,13 @@ body <-
                      
                      
     ),
-    tabItem(tabName = "widgets",
+    tabItem(tabName = "satellites",
             # h2("Satellites"),
-            plotOutput("satellite1"),
-            plotOutput("satellite2")
-    )),
+            plotlyOutput("satellite1"),
+            # plotOutput("satellite2")
+    )
+    
+    ),
 
         
         # Show a plot of the generated distribution
@@ -107,7 +152,11 @@ body <-
 ))
 
 dashboardPage(skin = "purple",
-    dashboardHeader(title = "U-CIE"),
+    dashboardHeader(title = "U-CIE",
+                    tags$li(actionLink("openModal", label = "", icon = icon("info")),
+                            class = "dropdown")
+                    
+    ),
     sidebar,
     body
 )
