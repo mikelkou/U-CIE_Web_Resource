@@ -14,9 +14,9 @@ library(ptinpoly) # pip3d
 library(pracma) # distmat
 library(plotly)
 library(DT)
-library(umap)
+library(umap) # for distance matrix
 
-
+library(prodlim)
 # library(future)
 # library(promises)
 # library(ipc)

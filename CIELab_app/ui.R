@@ -9,7 +9,7 @@
 
 # Define UI for application that draws a histogram
 source('~/Documents/Documents – SUN1012692/GitHub/CIELAB/global.R', local = TRUE)
-
+options(shiny.maxRequestSize = 100*1024^2)
 # shinyUI(
 
 sidebar <- dashboardSidebar(
@@ -17,7 +17,8 @@ sidebar <- dashboardSidebar(
     sidebarMenu(menuItem("Upload Files", tabName = "upload", icon = icon("dashboard")),
                 menuItem("UMAP", tabName = "umap", icon = icon("dashboard")),
                 menuItem("Satellites", icon = icon("th"), tabName = "satellites",
-                         badgeLabel = "new", badgeColor = "green")
+                         badgeLabel = "new", badgeColor = "green"),
+                menuItem("Download", icon = icon("th"), tabName = "Download")
     )
 )
 
@@ -90,50 +91,69 @@ body <-
     
     tabItem(tabName = "umap",
                      # h2("Parameters and UMAP"),
-                     sliderInput("weightL",
+            column(2, sliderInput("weightL",
                                  "L* weight (Brightness):",
                                  min = 1,
                                  max = 3,
                                  value = 1,
-                                 step = 0.1),
+                                 step = 0.1, 
+                                 width = '1000px'),
                      sliderInput("weightA",
                                  "a* weight (Red - Green):",
                                  min = 1,
                                  max = 3,
                                  value = 1,
-                                 step = 0.1),
+                                 step = 0.1, 
+                                 width = '1000px'),
                      sliderInput("weightB",
                                  "b* weight (Yellow - Blue):",
                                  min = 1,
                                  max = 3,
                                  value = 1,
-                                 step = 0.1),
+                                 step = 0.1, 
+                                 width = '1000px'),
                      sliderInput("scaling",
                                  "Scaling factor multiplier:",
                                  min = 1,
                                  max = 2,
                                  value = 1,
-                                 step = 0.1),
-                     actionButton("weightButton", "Weight"),
-                     actionButton("scalingButton", "Scale"),
-                     br(),
-                     br(),
-                     br(),
-                     br(),
-                     plotlyOutput("plotly_plot"),
+                                 step = 0.1, 
+                                 width = '1000px'),
+                     actionButton("weightButton", "Weight", width = '350px'),
+                     actionButton("scalingButton", "Scale", width = '350px'),
+                   br(),
+                   br(),
+                   br(),
+                   br(),
+                   dataTableOutput("table")),
+                    
+            column(1, offset = 2, plotlyOutput("plotly_plot")),
                      uiOutput("list_of_parameters"),
-                     dataTableOutput("table")
+                     
                      
                      
                      
     ),
     tabItem(tabName = "satellites",
             # h2("Satellites"),
-            plotlyOutput("satellite1"),
-            # plotOutput("satellite2")
+            column(2, 
+                   actionButton("remove_genes", "Remove Genes and Re-color!"),
+                   actionButton("reset_genes", "Reset"),
+                   uiOutput("reset")
+                   ),
+            column(1, plotlyOutput("satellite1"))
+            
+    ),
+    tabItem(tabName = "Download",
+            column(1,downloadButton('downloadData', 'Download')),
+            hr(),
+            hr(),
+            hr(),
+            dataTableOutput("download_table")
+
     )
     
-    ),
+    )
 
         
         # Show a plot of the generated distribution
