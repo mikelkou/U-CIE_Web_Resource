@@ -1,4 +1,5 @@
 library(shiny)
+library(shinyjs)
 library(shinydashboard)
 library(scRNAseq)
 library(Matrix)
@@ -15,8 +16,9 @@ library(pracma) # distmat
 library(plotly)
 library(DT)
 library(umap) # for distance matrix
-
+library(readxl)
 library(prodlim)
+
 # library(future)
 # library(promises)
 # library(ipc)

@@ -26,7 +26,7 @@ sidebar <- dashboardSidebar(
 body <- 
     dashboardBody(
         fluidPage(
-    
+          useShinyjs(),
     # Application title
     # titlePanel("U-CIE"),
     titlePanel(div(HTML("<strong>U-CIE</strong> <em> [/juː 'siː/] </em> "))),
@@ -34,37 +34,57 @@ body <-
     
     
     tabItems(tabItem(tabName = "upload",
-                     fileInput("file1", "Upload File",
-                               multiple = FALSE,
-                               accept = c("text/csv",
-                                          "text/comma-separated-values,text/plain",
-                                          ".csv")),
+                     # fileInput("file1", "Upload File",
+                     #           multiple = FALSE,
+                     #           accept = c("text/csv",
+                     #                      "text/comma-separated-values,text/plain",
+                     #                      ".csv")),
+
+                     br(),
+                     br(),
+                     selectInput("uiLoadGraphOptionsInput",
+                       "1: Choose File(s)",
+                       c(
+                         "File upload" = "oF",
+                         "GSE75748_time_course" = "oR_Example1",
+                         "GSE75748_cell_type" = "oR_Example2"
+                         )
+                     ),
+                     uiOutput("uiLoadGraphOptionsOutput"),
                      
-                     selectInput(inputId = "dataset",
-                                 label = "Example datasets:",
-                                 choices = c("-" ,"GSE75748_time_course", "GSE75748_cell_type")),
+                     # selectInput(inputId = "dataset",
+                     #             label = "Example datasets:",
+                     #             choices = c("-" ,"GSE75748_time_course", "GSE75748_cell_type")),
                      
                      
-                     
+                     actionButton("btnanalysis", "Analysis"),
+
                      # Horizontal line ----
                      tags$hr(),
                      
                      # Input: Checkbox if file has header ----
-                     selectInput("matrix", "Type of Matrix:",
-                                  choices = c('-' = "-",
-                                              'Single-cells' = 'Single-cells',
+                     # selectInput("matrix", "Type of Matrix:",
+                     #              choices = c('-' = "-",
+                     #                          'Single-cells' = 'Single-cells',
+                     #                          'High Dimensional' = 'High Dimensional',
+                     #                          'Distance matrix'=  'Distance matrix',
+                     #                          '3D data' = '3D data'),
+                     #              selected = '-'),
+                     radioButtons("matrix", "Type of Matrix:",
+                                  choices = c('Single-cells' = 'Single-cells',
                                               'High Dimensional' = 'High Dimensional',
                                               'Distance matrix'=  'Distance matrix',
-                                              '3D data' = '3D data'),
-                                  selected = '-'),
+                                              '3D data' = '3D data'), 
+                                  selected = character(0)),
                      
                      # Input: Select separator ----
                      checkboxInput("header", "Header", TRUE),
                      
-                     radioButtons("sep", "Separator",
-                                  choices = c(Comma = ",",
-                                              Semicolon = ";",
-                                              Tab = "\t"),
+                     radioButtons("sep", "Type of file",
+                                  choices = c("Comma-serepated" = ",",
+                                              "Semicolon-seperated" = ";",
+                                              "Tab-seperated" = "\t",
+                                              "Excel" = "xlsx"),
                                   selected = "\t"),
                      
                      # Input: Select quotes ----
@@ -84,65 +104,64 @@ body <-
                                   selected = "head"),
                      tags$hr(),
                      uiOutput("uploaded_dataset"),
-                     tableOutput("contents")
+                     # box(tableOutput("contents"), width=12,background ="purple"),
+                     dataTableOutput("contents"),
+                     pre(id = "console")
                      
                      
     ),
     
     tabItem(tabName = "umap",
                      # h2("Parameters and UMAP"),
-            column(2, sliderInput("weightL",
+            br(),
+            br(),
+            column(3,sliderInput("weightL",
                                  "L* weight (Brightness):",
                                  min = 1,
                                  max = 3,
                                  value = 1,
                                  step = 0.1, 
-                                 width = '1000px'),
+                                 width = '500px'),
                      sliderInput("weightA",
                                  "a* weight (Red - Green):",
                                  min = 1,
                                  max = 3,
                                  value = 1,
                                  step = 0.1, 
-                                 width = '1000px'),
+                                 width = '500px'),
                      sliderInput("weightB",
                                  "b* weight (Yellow - Blue):",
                                  min = 1,
                                  max = 3,
                                  value = 1,
                                  step = 0.1, 
-                                 width = '1000px'),
+                                 width = '500px'),
                      sliderInput("scaling",
                                  "Scaling factor multiplier:",
                                  min = 1,
                                  max = 2,
                                  value = 1,
                                  step = 0.1, 
-                                 width = '1000px'),
-                     actionButton("weightButton", "Weight", width = '350px'),
-                     actionButton("scalingButton", "Scale", width = '350px'),
-                   br(),
-                   br(),
-                   br(),
-                   br(),
-                   dataTableOutput("table")),
-                    
-            column(1, offset = 2, plotlyOutput("plotly_plot")),
+                                 width = '500px'),
+                     actionButton("weightButton", "Weight", width = '100px'),
+                     actionButton("scalingButton", "Scale", width = '100px')),
+                   
+                   column(6,offset=1,box(plotlyOutput("plotly_plot"),width=12,title="UMAP with CIE L* a* b* colors",height = "800px",background ="purple",collapsible = F) ), 
+            column(8,offset=1,dataTableOutput("table")),
                      uiOutput("list_of_parameters"),
                      
                      
-                     
-                     
+
     ),
     tabItem(tabName = "satellites",
             # h2("Satellites"),
-            column(2, 
-                   actionButton("remove_genes", "Remove Genes and Re-color!"),
-                   actionButton("reset_genes", "Reset"),
-                   uiOutput("reset")
-                   ),
-            column(1, plotlyOutput("satellite1"))
-            
+            br(),
+            br(),
+            column(6,box(plotlyOutput("satellite1"),width=12,title="Satellite",height = "800px",background ="yellow") ), 
+            actionButton("remove_genes", "Remove Genes and Re-color!"),
+            actionButton("reset_genes", "Reset"),
+            uiOutput("reset")
+
     ),
     tabItem(tabName = "Download",
             column(1,downloadButton('downloadData', 'Download')),

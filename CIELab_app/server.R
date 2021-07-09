@@ -7,9 +7,22 @@
 #    http://shiny.rstudio.com/
 #
 
+withConsoleRedirect <- function(containerId, expr) {
+  # Change type="output" to type="message" to catch stderr
+  # (messages, warnings, and errors) instead of stdout.
+  txt <- capture.output(results <- expr, type = "output")
+  if (length(txt) > 0) {
+    insertUI(paste0("#", containerId), where = "beforeEnd",
+             ui = paste0(txt, "\n", collapse = "")
+    )
+  }
+  results
+}
+
+
 
 # Define server logic required to draw a histogram
-shinyServer(function(input, output) {
+shinyServer(function(input, output, session) {
   options(shiny.maxRequestSize = 100*1024^2)
     source('~/Documents/Documents – SUN1012692/GitHub/CIELAB/global.R', local = TRUE)
     polygon <- ColorSpacePolygon(RGB_space)
@@ -23,71 +36,171 @@ shinyServer(function(input, output) {
         NewUMAP = NULL,
         RemoveGenesFromConvexCloud = NULL,
         select_data = NULL,
+        deselect = NULL,
         NewUMAP_stored = NULL,
         umap_dist_stored = NULL,
         DownloadFile = NULL,
         RemovedGenes = NULL
     )
     
-    observe({
-      req(input$file1)
-      # print(input$file1)
-      myvals$uploaded_df <- read.delim(input$file1$datapath,
-                              header = input$header,
-                              sep = input$sep,
-                              quote = input$quote)
-
+    read_data <- function(datapath, type = c("txt"), header = T, sep = "\t", quote = "\"") ({
+      if(endsWith(input$file1$name, 'xlsx')){
+        dataset1 <- as.data.frame(read_excel(input$file1$datapath, 1, col_names = ifelse(input$header==T, T, F)))
+      } else{
+        dataset1 <- read.table(input$file1$datapath, header =  input$header, sep = input$sep, quote = input$quote)
+      }
+      
+      if(ncol(dataset1)<3){
+        showModal(modalDialog(title = "Not even 3D? Please check again the dataset.", easyClose = T, fade = T))
+        dataset1 <- NULL
+      }
+      
+      return(dataset1)
     })
-
-    output$contents <- renderTable({
+    
+    loadNetworkFromFile <- function() {
+      dataset1 <- NULL
+      set.seed(123)
       
-      # input$file1 will be NULL initially. After the user selects
-      # and uploads a file, head of that data file by default,
-      # or all rows if selected, will be shown.
+      switch(
+        input$uiLoadGraphOptionsInput,
+        oF = {
+          if (!is.null(input$file1)) {
+            if(input$file1$type == "application/pdf"){
+              # "This is PDF! Please upload tsv/csv files."
+              showModal(modalDialog(title = "This is PDF! Please upload tsv/csv files.", easyClose = T, fade = T))
+            } else {
+            dataset1 <- read_data(input$file1$datapath)
+            }
+          }
+        },
+        oR_Example1 = {
+          dataset1 <- log2FC_MatrixCounts_tc[1:500,1:500]
+          # log2FC_MatrixCounts <- log2FC_MatrixCounts_tc[1:500,1:500]
+          # log2FC_MatrixCounts <- log2FC_MatrixCounts_tc
+          # log2FC_MatrixCounts_tc <- data.frame(read.delim("~/Documents/Documents – SUN1012692/GitHub/CIELAB/log2FC_MatrixCounts_tc.tsv"))
+          # log2FC_MatrixCounts <- data.frame(read.delim("~/Documents/GitHub/CIELAB/log2FC_MatrixCounts_tc.tsv"))
+          # print(log2FC_MatrixCounts[1:10,1:10])
+        },
+        oR_Example2 = {
+          dataset1 <- log2FC_MatrixCounts_ct[1:500,1:500]
+          # log2FC_MatrixCounts <- log2FC_MatrixCounts_ct
+          # log2FC_MatrixCounts <- log2FC_MatrixCounts_ct[1:1000,1:1000]
+          # log2FC_MatrixCounts_ct <- data.frame(read.delim("~/Documents/Documents – SUN1012692/GitHub/CIELAB/log2FC_MatrixCounts_ct.tsv"))
+          # log2FC_MatrixCounts <- data.frame(read.delim("~/Documents/GitHub/CIELAB/log2FC_MatrixCounts_ct.tsv"))
+        }
+      )
       
-      req(input$file1)
+      return(dataset1)
+    }
+    
+    output$uiLoadGraphOptionsOutput <- renderUI({
+      if (is.null(input$uiLoadGraphOptionsInput))
+        return()
       
-      # when reading semicolon separated files,
-      # having a comma separator causes `read.csv` to error
+      # Depending on input$input_type, we'll generate a different UI
+      # component and send it to the client.
+      if (input$uiLoadGraphOptionsInput == "oF") {
+        wellPanel(fileInput(
+          "file1",
+          "Choose file to upload",
+          accept = c(
+            "text/csv",
+            "text/comma-separated-values,text/plain",
+            ".csv",
+            ".xlsx"
+          ))
+        )
+      } else {}
+      
+    })
+    
+    ###### Upload #######
+    doAddNetwork <- observeEvent(input$btnanalysis, {
+      myvals$uploaded_df <- loadNetworkFromFile()
+      # print(head(myvals$uploaded_df))
+      # if (!is.null(dataset)) {
+      #     nid <- UUIDgenerate(T)      #time-base UUID is generated
+      #     nn <- input$networkName
+      #     cnt <- 1                    #count
+      #     while (nn %in% reactiveVars$StoredNetworks$name) {
+      #       #reactiveVars: represents a single reactive variable.
+      #       cnt <- cnt + 1
+      #       nn <-
+      #         paste(input$networkName, cnt)      #paste: converts its arguments (via as.character) to character strings
+      #     }
+      #     df <- data.frame(id = nid, name = nn, stringsAsFactors = F)
+      # }
+        
+        
+      #   if (nrow(dataset) >= 10000) {
+      #     createAlert(
+      #       session,
+      #       "tabUpload_up_to_10000_rows",
+      #       "fileUploadAlert_up_to_10000_rows",
+      #       title = "Warning !",
+      #       style = "danger",
+      #       content = paste0(
+      #         "Please make sure that your network has less than 10,000 connections."
+      #       ),
+      #       append = FALSE
+      #     )
+      #     dataset <- NULL
+      #   }
+      #   
+      # } else
+      #   createAlert(
+      #     session,
+      #     "tabUploadSideAlert",
+      #     "fileUploadAlert",
+      #     title = "ERROR !",
+      #     style = "danger",
+      #     content = paste0(
+      #       "An error occurred while trying to read your file. Please make sure that it is formatted according to the requirements."
+      #     ),
+      #     append = FALSE
+      #   )
+      
+    })
+    
+    
+    
+    output$contents <- renderDataTable({
+      uploaded_df <- loadNetworkFromFile()
       tryCatch(
         {
-          df <- myvals$uploaded_df
+          df <- uploaded_df
         },
         error = function(e) {
           # return a safeError if a parsing error occurs
           stop(safeError(e))
         }
       )
-      
-      myvals$umap_dist <- df
-      # print(myvals$umap_dist)
       if(input$disp == "head") {
-        return(head(df))
+        datatable(df[1:10,], options = list(scrollX = TRUE))
       }
       else {
-        return(df)
+        datatable(df, options = list(scrollX = TRUE))
       }
       
     })
     
     
     observe({
-      if(!is.null(myvals$uploaded_df)){
-        if(input$dataset != "-"){
-          myvals$umap_dist <- NULL
-        }
-        if(input$matrix == "-"){
-          myvals$umap_dist <- NULL
-        }
+      req(input$btnanalysis)
+        if (!is.null(myvals$uploaded_df) & !is.null(input$matrix)) {
+          print("ho")
         if(input$matrix == 'Single-cells'){
+          print("sc")
           # matrix_counts <- read.csv("~/Desktop/CBPP_22012021/Lars_Lab/single_cells/GSE75748_sc_cell_type_ec.csv")
-          matrix_counts <- myvals$uploaded_df   
+          matrix_counts <- myvals$uploaded_df
+          
           rownames(matrix_counts) <- matrix_counts[,1]
               matrix_counts <- matrix_counts[,2:ncol(matrix_counts)]
               matrix_counts <- data.matrix(matrix_counts) # must be a matrix object!
 
               TransposedMatrixCounts <- t(matrix_counts)
-
+              
           #     cnt <- 0
           #     FC_MatrixCounts <- c()
           #     for(i in 1:ncol(TransposedMatrixCounts)){
@@ -115,7 +228,8 @@ shinyServer(function(input, output) {
           #                                            -c(names(which(SDMoreThanOnelog2FC_MatrixCounts[1,]<1))))
          
          # data <- CreateSeuratObject(counts = SDMoreThanOnelog2FC_MatrixCounts)
-         data <- CreateSeuratObject(counts = TransposedMatrixCounts)
+              withConsoleRedirect("console", {
+              data <- CreateSeuratObject(counts = TransposedMatrixCounts)
          all.genes <- rownames(data)
          data <- ScaleData(data, do.scale =  F, do.center = F, features = all.genes)
          
@@ -129,6 +243,7 @@ shinyServer(function(input, output) {
          data <- RunUMAP(data, dims = 1:50, n.components = 3L)
          
          data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
+              })
          umap_dist <- data_umap_coord
          myvals$umap_dist <- umap_dist
          # myvals$umap_dist <- myvals$uploaded_df
@@ -137,47 +252,47 @@ shinyServer(function(input, output) {
         } 
       
       if(input$matrix == 'High Dimensional'){
-        data <- CreateSeuratObject(counts = myvals$uploaded_df)
-        all.genes <- rownames(data)
-        data <- ScaleData(data, do.scale =  F, do.center = F, features = all.genes)
-        data <- FindVariableFeatures(object = data, selection.method = 'mvp') #mvp because of error in log
-        data <- RunPCA(data, npcs = 50, features = VariableFeatures(object = data))
-        data <- FindNeighbors(data, dims = 1:length(data@reductions$pca))
-        data <- FindClusters(data, resolution = 0.5, algorithm= 1) # color in Seurat umap output
-        data <- RunUMAP(data, dims = 1:50, n.components = 3L)
-        data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
-        
+        # data <- CreateSeuratObject(counts = myvals$uploaded_df)
+        # all.genes <- rownames(data)
+        # data <- ScaleData(data, do.scale =  F, do.center = F, features = all.genes)
+        # data <- FindVariableFeatures(object = data, selection.method = 'mvp') #mvp because of error in log
+        # data <- RunPCA(data, npcs = 50, features = VariableFeatures(object = data))
+        # data <- FindNeighbors(data, dims = 1:length(data@reductions$pca))
+        # data <- FindClusters(data, resolution = 0.5, algorithm= 1) # color in Seurat umap output
+        # data <- RunUMAP(data, dims = 1:50, n.components = 3L)
+        # data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
+        withConsoleRedirect("console", {
         data <- umap(myvals$uploaded_df, ret_nn = TRUE, n_neighbors = 5, n_components = 3) # library(uwot)
         data_umap_coord <- as.data.frame(data$embedding)
+        })
+        
         umap_dist <- data_umap_coord
         myvals$umap_dist <- umap_dist
       }
       if(input$matrix == 'Distance matrix'){
+        withConsoleRedirect("console", {
         data <- as.matrix(dist(myvals$uploaded_df))
         data <- umap(data, input="dist", n_components = 3)
         data_umap_coord <- as.data.frame(data$layout)
+        })
         umap_dist <- data_umap_coord
         myvals$umap_dist <- umap_dist
+        print("Distance")
       }
-      if(input$matrix == '3D data'){
-        data <- CreateSeuratObject(counts = myvals$uploaded_df)
-        all.genes <- rownames(data)
+      if(input$matrix == "3D data"){
+        myvals$umap_dist <- myvals$uploaded_df
+        print("3D")
+      }
+      }
+      # }
+        if(is.null(input$matrix)){
+          print("hi")
+      if(input$uiLoadGraphOptionsInput == "oR_Example1"){
+        # print(input$btnanalysis)
+        input$btnanalysis
         
-        data <- RunUMAP(data, metric = 'precomputed', dims = 1:3, n.components = 3L)
-        
-        data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
-        umap_dist <- data_umap_coord
-        myvals$umap_dist <- umap_dist
-      }
-      }
-      
-      if(is.null(myvals$uploaded_df)) {
-        if(input$dataset == "-") {
-        myvals$umap_dist <- NULL
-        }
-      
-      if(input$dataset == "GSE75748_time_course"){
-
+          withConsoleRedirect("console", {
+            
             #     rownames(matrix_counts) <- matrix_counts[,1]
             #     matrix_counts <- matrix_counts[,2:ncol(matrix_counts)]
             #     matrix_counts <- data.matrix(matrix_counts) # must be a matrix object!
@@ -200,11 +315,7 @@ shinyServer(function(input, output) {
             # log2FC_MatrixCounts <- log2(FC_MatrixCounts)
 
             # 1
-            log2FC_MatrixCounts <- log2FC_MatrixCounts_tc[1:500,1:500]
-            # log2FC_MatrixCounts <- log2FC_MatrixCounts_tc
-            # log2FC_MatrixCounts_tc <- data.frame(read.delim("~/Documents/Documents – SUN1012692/GitHub/CIELAB/log2FC_MatrixCounts_tc.tsv"))
-            # log2FC_MatrixCounts <- data.frame(read.delim("~/Documents/GitHub/CIELAB/log2FC_MatrixCounts_tc.tsv"))
-            # print(log2FC_MatrixCounts[1:10,1:10])
+            log2FC_MatrixCounts <- loadNetworkFromFile()
             print("1")
             SDMoreThanOnelog2FC_MatrixCounts <- c()
             for(i in 1:ncol(log2FC_MatrixCounts)){
@@ -230,17 +341,17 @@ shinyServer(function(input, output) {
             data <- RunUMAP(data, dims = 1:50, n.components = 3L)
 
             data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
+          })
             umap_dist <- data_umap_coord
             myvals$umap_dist <- umap_dist
             # print(myvals$umap_dist)
         }
         
-        if(input$dataset == "GSE75748_cell_type"){
+        if(input$uiLoadGraphOptionsInput == "oR_Example2"){
             # 2
-            log2FC_MatrixCounts <- log2FC_MatrixCounts_ct
-            # log2FC_MatrixCounts <- log2FC_MatrixCounts_ct[1:1000,1:1000]
-            # log2FC_MatrixCounts_ct <- data.frame(read.delim("~/Documents/Documents – SUN1012692/GitHub/CIELAB/log2FC_MatrixCounts_ct.tsv"))
-            # log2FC_MatrixCounts <- data.frame(read.delim("~/Documents/GitHub/CIELAB/log2FC_MatrixCounts_ct.tsv"))
+          input$btnanalysis
+          withConsoleRedirect("console", {
+          log2FC_MatrixCounts <- loadNetworkFromFile()
             print("2")
             SDMoreThanOnelog2FC_MatrixCounts <- c()
             for(i in 1:ncol(log2FC_MatrixCounts)){
@@ -266,13 +377,14 @@ shinyServer(function(input, output) {
             data <- RunUMAP(data, dims = 1:50, n.components = 3L)
             
             data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
+          })
             umap_dist <- data_umap_coord
             
             myvals$umap_dist <- umap_dist
         }
-      }
       # myvals$umap_dist_stored <- myvals$umap_dist
-      
+        
+      }
     })
     
     
@@ -556,8 +668,6 @@ shinyServer(function(input, output) {
     
     output$plotly_plot <- renderPlotly({
       umap_dist <- myvals$umap_dist
-      print("Hi")
-      input$reset_genes
       if(is.null(umap_dist)){}
       else{
         if(!is.null(myvals$RemoveGenesFromConvexCloud)){
@@ -577,9 +687,18 @@ shinyServer(function(input, output) {
     NewUMAP <- Scaling(umap_dist, start.values[1]*isolate(input$scaling))
     NewUMAP <- Rotation(as.matrix(NewUMAP), start.values[2]  , start.values[3] , start.values[4])
     NewUMAP <- Translation(NewUMAP, start.values[5] , start.values[6] ,start.values[7])
-    myvals$NewUMAP <- NewUMAP
+    # myvals$NewUMAP <- NewUMAP
+    # NewUMAP <- myvals$NewUMAP
     
-    NewUMAP <- myvals$NewUMAP 
+
+    if(input$reset_genes){
+      print("stored")
+      NewUMAP <- myvals$NewUMAP_stored
+    } else {
+      myvals$NewUMAP <- NewUMAP
+      NewUMAP <- myvals$NewUMAP
+    }
+
     # Colors to the New UMAP cloud
     Lab <- NewUMAP
     Lab <- round(Lab, 2)
@@ -590,7 +709,7 @@ shinyServer(function(input, output) {
             Bstar = c(Lab[, 3])
         ),
         .Names = c("Lstar", "Astar", "Bstar"),
-        row.names = c(rownames(umap_dist)),
+        row.names = c(rownames(NewUMAP)),
         class = "data.frame"
     )
     
@@ -614,20 +733,22 @@ shinyServer(function(input, output) {
                 title = "UMAP3")
     
     fig <- plot_ly(
-        data = as.data.frame(umap_dist),
-        x = umap_dist[, 1],
-        y = umap_dist[, 2],
-        z = umap_dist[, 3],
+        data = as.data.frame(NewUMAP),
+        x = NewUMAP[, 1],
+        y = NewUMAP[, 2],
+        z = NewUMAP[, 3],
+        source = "A",
         type = "scatter3d",
         mode = "markers",
-        text = c(rownames(umap_dist)),
+        text = c(rownames(NewUMAP)),
         # hoverinfo = 'text',
         marker = list(
             color = hex(LABdata, fix = TRUE),
             size = 3,
             width = 2
-        ),
-        width = 1200, height = 1200
+        )
+        ,
+        width = 735, height = 720
     )
     fig <- fig %>% layout(scene = list(
         xaxis = axx,
@@ -640,10 +761,10 @@ shinyServer(function(input, output) {
     })
     
     observeEvent(input$remove_genes, {
-      if (!is.null(myvals$select_data)) {
+      # if (!is.null(myvals$select_data)) {
         ConvexCloud <- myvals$NewUMAP
         ConvexCloud <- as.data.frame(ConvexCloud)
-        
+        myvals$NewUMAP_stored <- ConvexCloud
       if(!is.null(myvals$select_data)){
         if(myvals$select_data[,1]==2){
           comparison <- row.match(ConvexCloud[,c(1,3)],myvals$select_data[,3:4])
@@ -659,22 +780,12 @@ shinyServer(function(input, output) {
         myvals$NewUMAP <- myvals$RemoveGenesFromConvexCloud
         myvals$umap_dist <- myvals$RemoveGenesFromConvexCloud
         # print(myvals$select_data)
-      } 
+      # } 
     })
     
     
     observeEvent(input$reset_genes,{
-      if (!is.null(myvals$select_data)) {
-        ConvexCloud <- myvals$NewUMAP
-        umap_dist <- myvals$umap_dist
-        start.values <- myvals$start.values
-        
-        NewUMAP <- Scaling(umap_dist, start.values[1]*isolate(input$scaling))
-        NewUMAP <- Rotation(as.matrix(NewUMAP), start.values[2]  , start.values[3] , start.values[4])
-        NewUMAP <- Translation(NewUMAP, start.values[5] , start.values[6] ,start.values[7])
-        myvals$NewUMAP <- NewUMAP
-        
-    }
+      myvals$NewUMAP <- myvals$NewUMAP_stored
     })
     
       # observeEvent(input$reset_genes, {
@@ -692,7 +803,9 @@ shinyServer(function(input, output) {
     
     
     output$satellite1 <- renderPlotly({
-      myvals$select_data <- event_data("plotly_selected")
+      # myvals$select_data <- event_data("plotly_selected")
+      myvals$select_data <- event_data("plotly_selected", source = "A")
+      
       # print(myvals$select_data)
       
       # umap_dist <- myvals$umap_dist 
@@ -732,6 +845,7 @@ shinyServer(function(input, output) {
           data = as.data.frame(ConvexCloud),
           x = ConvexCloud[, 1],
           y = ConvexCloud[, 2],
+          source = "A",
           type = "scatter",
           mode = "markers",
           color = I("black"),
@@ -745,8 +859,9 @@ shinyServer(function(input, output) {
             line = list(
               color = 'gray50',
               width = 0.5)
-          ),
-          width = 1200, height = 1200
+          )
+          ,
+          width = 735, height = 720
         )
         
         # fig1 <- fig1 %>% add_polygons(polygon, x = polygon[, 1], y = polygon[, 3], color=I("red"), opacity=0.2)
@@ -757,6 +872,8 @@ shinyServer(function(input, output) {
                                       marker = list(color = I(polygon_colors[,4]), opacity = 1, size = 10),
                                       text = c(polygon_colors[,4]), hoverinfo = 'text', 
                                       line = list(color = '#a5c0cf'))
+        fig1 <- fig1 %>% 
+          layout(dragmode = "select")
         
         fig1 <- fig1 %>% layout(
           xaxis = list(title = "L"),
@@ -766,6 +883,7 @@ shinyServer(function(input, output) {
           data = as.data.frame(ConvexCloud),
           x = ConvexCloud[, 1],
           y = ConvexCloud[, 3],
+          source = "A",
           type = "scatter",
           mode = "markers",
           color = I("black"),
@@ -779,8 +897,9 @@ shinyServer(function(input, output) {
             line = list(
               color = 'gray50',
               width = 0.5)
-          ),
-          width = 1200, height = 1200
+          )
+          ,
+          width = 735, height = 720
         )
         
         # fig2 <- fig2 %>% add_polygons(polygon, x = polygon[, 1], y = polygon[, 3], color=I("red"), opacity=0.2)
@@ -791,6 +910,9 @@ shinyServer(function(input, output) {
                                       marker = list(color = I(polygon_colors[,4]), opacity = 1, size = 10), 
                                       text = c(polygon_colors[,4]), hoverinfo = 'text', 
                                       line = list(color = '#a5c0cf'))
+        
+        fig2 <- fig2 %>% 
+          layout(dragmode = "select")
         
         fig2 <- fig2 %>% layout(
           xaxis = list(title = "L"),
@@ -806,7 +928,14 @@ shinyServer(function(input, output) {
         
 }
     })
-
+    
+    
+    
+    
+    #--- Legend ---#
+    # output$legend <- renderDataTable({
+    #   
+    # })
     
     #--- Downloads ---#
     output$downloadData <- downloadHandler(
