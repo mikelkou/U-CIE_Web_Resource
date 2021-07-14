@@ -8,7 +8,7 @@
 #
 
 # Define UI for application that draws a histogram
-source('~/Documents/Documents – SUN1012692/GitHub/CIELAB/global.R', local = TRUE)
+source('~/Documents/Documents – SUN1012692/GitHub/CIELAB/CIELab_app/global.R', local = TRUE)
 options(shiny.maxRequestSize = 100*1024^2)
 # shinyUI(
 

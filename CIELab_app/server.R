@@ -24,8 +24,8 @@ withConsoleRedirect <- function(containerId, expr) {
 # Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
   options(shiny.maxRequestSize = 100*1024^2)
-    source('~/Documents/Documents – SUN1012692/GitHub/CIELAB/global.R', local = TRUE)
-    polygon <- ColorSpacePolygon(RGB_space)
+  source('~/Documents/Documents – SUN1012692/GitHub/CIELAB/CIELab_app/global.R', local = TRUE)
+  polygon <- ColorSpacePolygon(RGB_space)
     
     myvals <- reactiveValues(
         umap_dist = NULL,
