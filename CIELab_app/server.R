@@ -18,7 +18,7 @@ withConsoleRedirect <- function(containerId, expr) {
   results
 }
 
-config <- config::get(file = "~/Desktop/config.yml", use_parent = FALSE)
+config <- config::get(file = "CIELab_app/config.yml", use_parent = FALSE)
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
