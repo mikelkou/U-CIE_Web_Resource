@@ -1,4 +1,3 @@
-#
 # This is the server logic of a Shiny web application. You can run the
 # application by clicking 'Run App' above.
 #
@@ -19,12 +18,14 @@ withConsoleRedirect <- function(containerId, expr) {
   results
 }
 
-
+config <- config::get(file = "~/Desktop/config.yml", use_parent = FALSE)
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
   options(shiny.maxRequestSize = 100*1024^2)
-  source('~/Documents/Documents – SUN1012692/GitHub/CIELAB/CIELab_app/global.R', local = TRUE)
+  path_conf <- config$global
+  source(path_conf, local = TRUE)
+  
   polygon <- ColorSpacePolygon(RGB_space)
     
     myvals <- reactiveValues(
@@ -1011,13 +1012,14 @@ shinyServer(function(input, output, session) {
       df = as.data.frame(convex_colors)
       colnames(df) <- c("Names", "Colors")
       # style V6 based on values of V6
-      datatable(df, rownames = FALSE, extensions = 'Responsive', selection = 'none',
-      options = list(
-            rownames = F,
-            deferRender = TRUE,
-            scrollY = 200,
-            scroller = TRUE
-          )
+      datatable(df, rownames = FALSE, extensions = 'Responsive', selection = 'none'
+      #           ,
+      # options = list(
+      #       rownames = F,
+      #       deferRender = TRUE,
+      #       scrollY = 200,
+      #       scroller = TRUE
+      #     )
       ) %>% formatStyle(colnames(df),
         'Names', 
         # target = 'row',

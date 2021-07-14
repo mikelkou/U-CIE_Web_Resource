@@ -1,4 +1,5 @@
 if (!require("DT")) install.packages('DT')
+if (!require("config")) install.packages('config')
 library(shiny)
 library(shinyjs)
 library(shinydashboard)
@@ -21,6 +22,7 @@ library(readxl)
 library(prodlim)
 library(shinyWidgets)
 
+library(config)
 # library(future)
 # library(promises)
 # library(ipc)
