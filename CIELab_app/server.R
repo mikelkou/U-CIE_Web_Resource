@@ -40,14 +40,23 @@ shinyServer(function(input, output, session) {
         NewUMAP_stored = NULL,
         umap_dist_stored = NULL,
         DownloadFile = NULL,
-        RemovedGenes = NULL
+        RemovedGenes = NULL,
+        select_data_colors = NULL,
+        colors = NULL
     )
     
     read_data <- function(datapath, type = c("txt"), header = T, sep = "\t", quote = "\"") ({
       if(endsWith(input$file1$name, 'xlsx')){
         dataset1 <- as.data.frame(read_excel(input$file1$datapath, 1, col_names = ifelse(input$header==T, T, F)))
-      } else{
-        dataset1 <- read.table(input$file1$datapath, header =  input$header, sep = input$sep, quote = input$quote)
+      } 
+      if(endsWith(input$file1$name, 'csv')){
+        dataset1 <- read.table(input$file1$datapath, header = input$header, sep = ",", quote = input$quote)
+      } 
+      if(endsWith(input$file1$name, 'txt')){
+        dataset1 <- read.table(input$file1$datapath, header = input$header, sep = "\t", quote = input$quote)
+      }
+      if(endsWith(input$file1$name, 'tsv')){
+        dataset1 <- read.table(input$file1$datapath, header = input$header, sep = "\t", quote = input$quote)
       }
       
       if(ncol(dataset1)<3){
@@ -389,6 +398,11 @@ shinyServer(function(input, output, session) {
     
     
     observe({
+      withProgress(min = 0, max = 1, {
+        incProgress(message = "Calculation in progress",
+                    # detail = "This may take a while...",
+                    amount = .1)
+        
         umap_dist <- myvals$umap_dist 
         
         if(is.null(umap_dist)){}
@@ -614,6 +628,7 @@ shinyServer(function(input, output, session) {
       
         print("~End~")  
         }
+      })
     })
     
     
@@ -683,6 +698,7 @@ shinyServer(function(input, output, session) {
       } else {
         start.values <- myvals$start.values
       }
+     
       
     NewUMAP <- Scaling(umap_dist, start.values[1]*isolate(input$scaling))
     NewUMAP <- Rotation(as.matrix(NewUMAP), start.values[2]  , start.values[3] , start.values[4])
@@ -690,10 +706,12 @@ shinyServer(function(input, output, session) {
     # myvals$NewUMAP <- NewUMAP
     # NewUMAP <- myvals$NewUMAP
     
-
+    
     if(input$reset_genes){
+      if(input$remove_genes[1]<=input$reset_genes[1]){
       print("stored")
       NewUMAP <- myvals$NewUMAP_stored
+      }
     } else {
       myvals$NewUMAP <- NewUMAP
       NewUMAP <- myvals$NewUMAP
@@ -732,6 +750,9 @@ shinyServer(function(input, output, session) {
     axz <- list(nticks = 4,
                 title = "UMAP3")
     
+    
+    myvals$colors <- as.data.frame(cbind(NewUMAP,hex(LABdata, fix = TRUE)))
+    
     fig <- plot_ly(
         data = as.data.frame(NewUMAP),
         x = NewUMAP[, 1],
@@ -756,21 +777,22 @@ shinyServer(function(input, output, session) {
         zaxis = axz
     )) 
     fig
-    
-      }
+      } # else
     })
     
     observeEvent(input$remove_genes, {
-      # if (!is.null(myvals$select_data)) {
+      if (length(myvals$select_data)==0) {
+        return()
+      }
+      if(!length(myvals$select_data)==0){
         ConvexCloud <- myvals$NewUMAP
         ConvexCloud <- as.data.frame(ConvexCloud)
         myvals$NewUMAP_stored <- ConvexCloud
-      if(!is.null(myvals$select_data)){
+      
         if(myvals$select_data[,1]==2){
           comparison <- row.match(ConvexCloud[,c(1,3)],myvals$select_data[,3:4])
       } else comparison <- row.match(ConvexCloud[,c(1,2)],myvals$select_data[,3:4])
-      }
-        # print(comparison)
+      
         myvals$RemoveGenesFromConvexCloud <- ConvexCloud[-c(which(!is.na(comparison))), ] # Not showing these points
         
         RemovedGenes <- ConvexCloud[c(which(!is.na(comparison))), ] # Color them gray in the output file
@@ -779,8 +801,7 @@ shinyServer(function(input, output, session) {
         
         myvals$NewUMAP <- myvals$RemoveGenesFromConvexCloud
         myvals$umap_dist <- myvals$RemoveGenesFromConvexCloud
-        # print(myvals$select_data)
-      # } 
+      }
     })
     
     
@@ -788,28 +809,14 @@ shinyServer(function(input, output, session) {
       myvals$NewUMAP <- myvals$NewUMAP_stored
     })
     
-      # observeEvent(input$reset_genes, {
-      #   # print(nrow(myvals$RemoveGenesFromConvexCloud))
-      #   # if(!is.null(myvals$RemoveGenesFromConvexCloud)){
-      #       # print(nrow(myvals$umap_dist_stored))
-      #       start.values <- myvals$start.values
-      #       # myvals$umap_dist <- myvals$umap_dist_stored
-      #       NewUMAP <- Scaling(myvals$umap_dist_stored, start.values[1]*isolate(input$scaling))
-      #       NewUMAP <- Rotation(as.matrix(NewUMAP), start.values[2]  , start.values[3] , start.values[4])
-      #       NewUMAP <- Translation(NewUMAP, start.values[5] , start.values[6] ,start.values[7])
-      #       myvals$NewUMAP <- as.data.frame(NewUMAP)
-      #   
-      # })
     
     
     output$satellite1 <- renderPlotly({
       # myvals$select_data <- event_data("plotly_selected")
+      
       myvals$select_data <- event_data("plotly_selected", source = "A")
-      
-      # print(myvals$select_data)
-      
-      # umap_dist <- myvals$umap_dist 
-      umap_dist <- myvals$NewUMAP 
+
+      umap_dist <- myvals$NewUMAP
         if(is.null(umap_dist)){}
         else{
           input$scalingButton
@@ -822,10 +829,7 @@ shinyServer(function(input, output, session) {
           
           
           ConvexCloud <- myvals$NewUMAP
-          # ConvexCloud <- UMAPConvex(umap_dist)
-          # ConvexCloud <- Scaling(ConvexCloud, start.values[1]*isolate(input$scaling))
-          # ConvexCloud <- Rotation(ConvexCloud,  start.values[2]  , start.values[3] , start.values[4])
-          # ConvexCloud <- Translation(ConvexCloud, start.values[5] , start.values[6] ,start.values[7])
+          
 
         colordata = structure(
           list(
@@ -841,6 +845,27 @@ shinyServer(function(input, output, session) {
         LABdata_polygon <- with(colordata, LAB(Lstar, Astar, Bstar))
         polygon_colors <- as.data.frame(cbind(polygon, hex(LABdata_polygon, fix = TRUE)))
         
+        # Show colors of selected genes
+        ConvexCloud <- myvals$NewUMAP
+        ConvexCloud <- as.data.frame(ConvexCloud)
+        
+        if (length(myvals$select_data)==0) {
+          myvals$select_data_colors <- as.data.frame(cbind(myvals$colors, rep("gray50", nrow(myvals$colors))))
+          }
+        if(!(length(myvals$select_data)==0)){
+          if(myvals$select_data[,1]==2){
+            comparison <- row.match(myvals$colors[,c(1,3)],myvals$select_data[,3:4])
+          } else comparison <- row.match(myvals$colors[,c(1,2)],myvals$select_data[,3:4])
+          
+          a <- as.data.frame(cbind(myvals$colors, as.data.frame(comparison)))
+          # print(a)
+          a[,4] <- ifelse(is.na(a[,5]),  "gray50",  a[,4])
+          myvals$select_data_colors <- a
+          # print(a)
+        }
+        
+        
+        
         fig1 <- plot_ly(
           data = as.data.frame(ConvexCloud),
           x = ConvexCloud[, 1],
@@ -848,25 +873,28 @@ shinyServer(function(input, output, session) {
           source = "A",
           type = "scatter",
           mode = "markers",
-          color = I("black"),
+          # color = I("black"),
+          # color = I(colors),
           legendgroup = 'UMAP point cloud', showlegend = T,
           name = 'UMAP point cloud',
-          # text = c(rownames(umap_dist)),
-          # hoverinfo = 'text',
-          marker = list(
-            size = 5,
-            width = 2,
-            line = list(
-              color = 'gray50',
-              width = 0.5)
-          )
+          text = c(rownames(ConvexCloud)),
+          hoverinfo = 'text',
+          # marker = list(
+          #   size = 5,
+          #   width = 2,
+          #   line = list(
+          #     # color = 'gray50',
+          #     color = myvals$select_data_colors[,4],
+          #     width = 0.5)
+          # )
+          marker = list(color = I(myvals$select_data_colors[,4]), opacity = 1, size = 8)
           ,
           width = 735, height = 720
         )
         
         # fig1 <- fig1 %>% add_polygons(polygon, x = polygon[, 1], y = polygon[, 3], color=I("red"), opacity=0.2)
         fig1 <- fig1 %>% add_polygons(polygon, x = polygon[, 1], y = polygon[, 2], 
-                                      fillcolor = 'rgba(206, 211, 214, 0.5)', 
+                                      fillcolor = 'rgba(206, 211, 214, 0.1)', 
                                       name = 'CIE L* a* b*',
                                       legendgroup = 'CIE L* a* b*', showlegend = T,
                                       marker = list(color = I(polygon_colors[,4]), opacity = 1, size = 10),
@@ -886,25 +914,29 @@ shinyServer(function(input, output, session) {
           source = "A",
           type = "scatter",
           mode = "markers",
-          color = I("black"),
+          # color = I("black"),
+          # color = I(colors),
           legendgroup = 'UMAP point cloud', showlegend = F,
           name = 'UMAP point cloud',
-          # text = c(rownames(umap_dist)),
-          # hoverinfo = 'text',
-          marker = list(
-            size = 5,
-            width = 2,
-            line = list(
-              color = 'gray50',
-              width = 0.5)
-          )
+          text = c(rownames(ConvexCloud)),
+          hoverinfo = 'text',
+          hoveron = 'points+fills',
+          # marker = list(
+          #   size = 5,
+          #   width = 2,
+          #   line = list(
+          #     # color = 'gray50',
+          #     color = I(myvals$select_data_colors[,4]),
+          #     width = 0.5)
+          # )
+          marker = list(color = I(myvals$select_data_colors[,4]), opacity = 1, size = 8)
           ,
           width = 735, height = 720
         )
         
         # fig2 <- fig2 %>% add_polygons(polygon, x = polygon[, 1], y = polygon[, 3], color=I("red"), opacity=0.2)
         fig2 <- fig2 %>% add_polygons(polygon, x = polygon[, 1], y = polygon[, 3],  
-                                      fillcolor = 'rgba(206, 211, 214, 0.5)', 
+                                      fillcolor = 'rgba(206, 211, 214, 0.1)', hoveron = 'points+fills',
                                       legendgroup = 'CIE L* a* b*', showlegend = F ,
                                       name = 'CIE L* a* b*',
                                       marker = list(color = I(polygon_colors[,4]), opacity = 1, size = 10), 
@@ -929,13 +961,73 @@ shinyServer(function(input, output, session) {
 }
     })
     
-    
-    
-    
     #--- Legend ---#
-    # output$legend <- renderDataTable({
-    #   
-    # })
+    output$legend <- renderDataTable({
+      
+        umap_dist <- myvals$umap_dist
+        start.values <- myvals$start.values
+        
+        ConvexCloud <- myvals$NewUMAP
+        ConvexCloud <- as.data.frame(ConvexCloud)
+        if (length(myvals$select_data)==0) {
+          return()
+        }
+        if(!length(myvals$select_data)==0){
+          if(myvals$select_data[,1]==2){
+            comparison <- row.match(ConvexCloud[,c(1,3)],myvals$select_data[,3:4])
+          } else comparison <- row.match(ConvexCloud[,c(1,2)],myvals$select_data[,3:4])
+          
+          myvals$legend_genes <- ConvexCloud[c(which(!is.na(comparison))), ] 
+        }
+        
+        if(!is.null(myvals$legend_genes)){
+          myvals$legend_genes 
+        } else {
+          ConvexCloud <- UMAPConvex(umap_dist)
+          ConvexCloud <- Scaling(ConvexCloud, start.values[1]*isolate(input$scaling))
+          ConvexCloud <- Rotation(ConvexCloud,  start.values[2]  , start.values[3] , start.values[4])
+          ConvexCloud <- Translation(ConvexCloud, start.values[5] , start.values[6] ,start.values[7])
+          
+          myvals$legend_genes <- ConvexCloud
+        }
+      
+      ConvexCloud <- myvals$legend_genes
+      # print(ConvexCloud)
+      colordata_convex = structure(
+        list(
+          Lstar = c(ConvexCloud[, 1]),
+          Astar = c(ConvexCloud[, 2]),
+          Bstar = c(ConvexCloud[, 3])
+        ),
+        .Names = c("Lstar", "Astar", "Bstar"),
+        row.names = c(rownames(ConvexCloud)),
+        class = "data.frame"
+      )
+      
+      LABdata_convex <- with(colordata_convex, LAB(Lstar, Astar, Bstar))
+      convex_colors <- as.data.frame(cbind(rownames(ConvexCloud), hex(LABdata_convex, fix = TRUE)))
+      
+      options(DT.options = list(pageLength = 50))
+      df = as.data.frame(convex_colors)
+      colnames(df) <- c("Names", "Colors")
+      # style V6 based on values of V6
+      datatable(df, rownames = FALSE, extensions = 'Responsive', selection = 'none',
+      options = list(
+            rownames = F,
+            deferRender = TRUE,
+            scrollY = 200,
+            scroller = TRUE
+          )
+      ) %>% formatStyle(colnames(df),
+        'Names', 
+        # target = 'row',
+        backgroundColor = styleEqual(c(convex_colors[,1]), c(convex_colors[,2])), fontWeight = "bold"
+        # , fontSize = '200%'
+      )
+      
+      
+    })
+    
     
     #--- Downloads ---#
     output$downloadData <- downloadHandler(

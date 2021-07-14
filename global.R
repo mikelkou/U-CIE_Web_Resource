@@ -1,3 +1,4 @@
+if (!require("DT")) install.packages('DT')
 library(shiny)
 library(shinyjs)
 library(shinydashboard)
@@ -18,6 +19,7 @@ library(DT)
 library(umap) # for distance matrix
 library(readxl)
 library(prodlim)
+library(shinyWidgets)
 
 # library(future)
 # library(promises)

@@ -26,6 +26,7 @@ sidebar <- dashboardSidebar(
 body <- 
     dashboardBody(
         fluidPage(
+        # fixedPage(
           useShinyjs(),
     # Application title
     # titlePanel("U-CIE"),
@@ -51,7 +52,7 @@ body <-
                          )
                      ),
                      uiOutput("uiLoadGraphOptionsOutput"),
-                     
+                     prettyCheckbox("header", "Header", TRUE, status = 'danger', bigger = T),
                      # selectInput(inputId = "dataset",
                      #             label = "Example datasets:",
                      #             choices = c("-" ,"GSE75748_time_course", "GSE75748_cell_type")),
@@ -70,38 +71,37 @@ body <-
                      #                          'Distance matrix'=  'Distance matrix',
                      #                          '3D data' = '3D data'),
                      #              selected = '-'),
-                     radioButtons("matrix", "Type of Matrix:",
+                     prettyRadioButtons("matrix", "Type of Matrix:",
                                   choices = c('Single-cells' = 'Single-cells',
                                               'High Dimensional' = 'High Dimensional',
                                               'Distance matrix'=  'Distance matrix',
                                               '3D data' = '3D data'), 
-                                  selected = character(0)),
+                                  selected = character(0), status = 'warning'),
                      
                      # Input: Select separator ----
-                     checkboxInput("header", "Header", TRUE),
                      
-                     radioButtons("sep", "Type of file",
-                                  choices = c("Comma-serepated" = ",",
-                                              "Semicolon-seperated" = ";",
-                                              "Tab-seperated" = "\t",
-                                              "Excel" = "xlsx"),
-                                  selected = "\t"),
+                     # prettyRadioButtons("sep", "Type of file",
+                     #              choices = c("Comma-serepated" = ",",
+                     #                          "Semicolon-seperated" = ";",
+                     #                          "Tab-seperated" = "\t",
+                     #                          "Excel" = "xlsx"),
+                     #              selected = "\t"),
                      
                      # Input: Select quotes ----
-                     radioButtons("quote", "Quote",
+                     prettyRadioButtons("quote", "Quote",
                                   choices = c(None = "",
                                               "Double Quote" = '"',
                                               "Single Quote" = "'"),
-                                  selected = '"'),
+                                  selected = '', status = 'info'),
                      
                      # Horizontal line ----
                      tags$hr(),
                      
                      # Input: Select number of rows to display ----
-                     radioButtons("disp", "Display",
+                     prettyRadioButtons("disp", "Display",
                                   choices = c(Head = "head",
                                               All = "all"),
-                                  selected = "head"),
+                                  selected = "head", status = 'info'),
                      tags$hr(),
                      uiOutput("uploaded_dataset"),
                      # box(tableOutput("contents"), width=12,background ="purple"),
@@ -115,6 +115,9 @@ body <-
                      # h2("Parameters and UMAP"),
             br(),
             br(),
+            chooseSliderSkin("Square"),
+            # chooseSliderSkin("Flat", color = "#112446"),
+            # setSliderColor(c("DeepPink ", "#FF4500", "", "Teal"), c(1)),
             column(3,sliderInput("weightL",
                                  "L* weight (Brightness):",
                                  min = 1,
@@ -146,8 +149,11 @@ body <-
                      actionButton("weightButton", "Weight", width = '100px'),
                      actionButton("scalingButton", "Scale", width = '100px')),
                    
-                   column(6,offset=1,box(plotlyOutput("plotly_plot"),width=12,title="UMAP with CIE L* a* b* colors",height = "800px",background ="purple",collapsible = F) ), 
+            # progressBar(id = "pb1", value = 0, size = "xs", display_pct = F, status = 'info', striped = T),
+            
+                   column(6,offset=1,box(plotlyOutput("plotly_plot"),width=12,title="UMAP with CIE L* a* b* colors",height = "800px",background ="black",collapsible = F) ), 
             column(8,offset=1,dataTableOutput("table")),
+            
                      uiOutput("list_of_parameters"),
                      
                      
@@ -157,10 +163,12 @@ body <-
             # h2("Satellites"),
             br(),
             br(),
-            column(6,box(plotlyOutput("satellite1"),width=12,title="Satellite",height = "800px",background ="yellow") ), 
-            actionButton("remove_genes", "Remove Genes and Re-color!"),
-            actionButton("reset_genes", "Reset"),
-            uiOutput("reset")
+            column(6,box(plotlyOutput("satellite1"),width=12,title="Satellite",height = "800px",background ="black"),
+                   actionButton("remove_genes", "Remove Genes and Re-color!"),
+                   actionButton("reset_genes", "Reset"),
+                   uiOutput("reset")), 
+            
+            column(4,offset=1,dataTableOutput("legend")),
 
     ),
     tabItem(tabName = "Download",
