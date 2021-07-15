@@ -3,10 +3,10 @@
 # if (!require("shiny")) install.packages('shiny', dependencies = T)
 # if (!require("shinyjs")) install.packages('shinyjs', dependencies = T)
 # if (!require("shinydashboard")) install.packages('shinydashboard', dependencies = T)
-# if (!require("scRNAseq")) install.packages('scRNAseq', dependencies = T)
+# if (!require("scRNAseq")) install.packages('scRNAseq', dependencies = T) # NOT installed
 # if (!require("Matrix")) install.packages('Matrix', dependencies = T)
 # if (!require("dplyr")) install.packages('dplyr', dependencies = T)
-# if (!require("Seurat")) install.packages('Seurat', dependencies = T)
+# if (!require("Seurat")) install.packages('Seurat', dependencies = T) # NOT installed 
 # if (!require("patchwork")) install.packages('patchwork', dependencies = T)
 # if (!require("rgl")) install.packages('rgl', dependencies = T)
 # if (!require("geometry")) install.packages('geometry', dependencies = T)

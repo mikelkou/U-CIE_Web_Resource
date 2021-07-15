@@ -707,17 +707,21 @@ shinyServer(function(input, output, session) {
     # myvals$NewUMAP <- NewUMAP
     # NewUMAP <- myvals$NewUMAP
     
-    
+    if(input$remove_genes){
+      print("remove genes")
+      remove_genes()
+    }
     if(input$reset_genes){
+      print("reset")
       if(input$remove_genes[1]<=input$reset_genes[1]){
-      print("stored")
-      NewUMAP <- myvals$NewUMAP_stored
+        reset()
+        # NewUMAP <- myvals$NewUMAP_stored
       }
     } else {
       myvals$NewUMAP <- NewUMAP
-      NewUMAP <- myvals$NewUMAP
+      
     }
-
+    NewUMAP <- myvals$NewUMAP
     # Colors to the New UMAP cloud
     Lab <- NewUMAP
     Lab <- round(Lab, 2)
@@ -781,11 +785,11 @@ shinyServer(function(input, output, session) {
       } # else
     })
     
-    observeEvent(input$remove_genes, {
+    remove_genes <- eventReactive(input$remove_genes, {
+      
       if (length(myvals$select_data)==0) {
         return()
-      }
-      if(!length(myvals$select_data)==0){
+      } else {
         ConvexCloud <- myvals$NewUMAP
         ConvexCloud <- as.data.frame(ConvexCloud)
         myvals$NewUMAP_stored <- ConvexCloud
@@ -806,7 +810,8 @@ shinyServer(function(input, output, session) {
     })
     
     
-    observeEvent(input$reset_genes,{
+    reset <- eventReactive(input$reset_genes,{
+      # print(input$reset_genes)
       myvals$NewUMAP <- myvals$NewUMAP_stored
     })
     
@@ -817,6 +822,21 @@ shinyServer(function(input, output, session) {
       
       myvals$select_data <- event_data("plotly_selected", source = "A")
 
+      if(input$remove_genes){
+        print("remove genes")
+        remove_genes()
+      }
+      if(input$reset_genes){
+        print("reset")
+        if(input$remove_genes[1]<=input$reset_genes[1]){
+          reset()
+          # NewUMAP <- myvals$NewUMAP_stored
+        }
+      } else {
+        # myvals$NewUMAP <- NewUMAP
+        umap_dist <- myvals$NewUMAP
+      }
+        
       umap_dist <- myvals$NewUMAP
         if(is.null(umap_dist)){}
         else{
@@ -850,7 +870,7 @@ shinyServer(function(input, output, session) {
         ConvexCloud <- myvals$NewUMAP
         ConvexCloud <- as.data.frame(ConvexCloud)
         
-        if (length(myvals$select_data)==0) {
+        if(length(myvals$select_data)==0) {
           myvals$select_data_colors <- as.data.frame(cbind(myvals$colors, rep("gray50", nrow(myvals$colors))))
           }
         if(!(length(myvals$select_data)==0)){
@@ -962,67 +982,71 @@ shinyServer(function(input, output, session) {
 }
     })
     
+    
+    
+    
+    
+    
+    
     #--- Legend ---#
     output$legend <- renderDataTable({
+      ConvexCloud <- myvals$NewUMAP
+      ConvexCloud <- as.data.frame(ConvexCloud)
       
-        umap_dist <- myvals$umap_dist
-        start.values <- myvals$start.values
-        
-        ConvexCloud <- myvals$NewUMAP
-        ConvexCloud <- as.data.frame(ConvexCloud)
-        if (length(myvals$select_data)==0) {
-          return()
-        }
-        if(!length(myvals$select_data)==0){
-          if(myvals$select_data[,1]==2){
-            comparison <- row.match(ConvexCloud[,c(1,3)],myvals$select_data[,3:4])
-          } else comparison <- row.match(ConvexCloud[,c(1,2)],myvals$select_data[,3:4])
-          
-          myvals$legend_genes <- ConvexCloud[c(which(!is.na(comparison))), ] 
-        }
-        
-        if(!is.null(myvals$legend_genes)){
-          myvals$legend_genes 
-        } else {
-          ConvexCloud <- UMAPConvex(umap_dist)
-          ConvexCloud <- Scaling(ConvexCloud, start.values[1]*isolate(input$scaling))
-          ConvexCloud <- Rotation(ConvexCloud,  start.values[2]  , start.values[3] , start.values[4])
-          ConvexCloud <- Translation(ConvexCloud, start.values[5] , start.values[6] ,start.values[7])
-          
-          myvals$legend_genes <- ConvexCloud
-        }
-      
-      ConvexCloud <- myvals$legend_genes
-      # print(ConvexCloud)
-      colordata_convex = structure(
+      Lab <- ConvexCloud
+      Lab <- round(Lab, 2)
+      rawdata = structure(
         list(
-          Lstar = c(ConvexCloud[, 1]),
-          Astar = c(ConvexCloud[, 2]),
-          Bstar = c(ConvexCloud[, 3])
+          Lstar = c(Lab[, 1]),
+          Astar = c(Lab[, 2]),
+          Bstar = c(Lab[, 3])
         ),
         .Names = c("Lstar", "Astar", "Bstar"),
         row.names = c(rownames(ConvexCloud)),
         class = "data.frame"
       )
       
-      LABdata_convex <- with(colordata_convex, LAB(Lstar, Astar, Bstar))
-      convex_colors <- as.data.frame(cbind(rownames(ConvexCloud), hex(LABdata_convex, fix = TRUE)))
+      library(colorspace)
+      LABdata <- with(rawdata, LAB(Lstar, Astar, Bstar))
       
-      options(DT.options = list(pageLength = 50))
+      legend_colors <- as.data.frame(cbind(ConvexCloud,hex(LABdata, fix = TRUE)))
+      # print(legend_colors)
+      
+      if (length(myvals$select_data)==0) {
+        myvals$legend_genes <- myvals$NewUMAP
+      } else {
+        # req(input$remove_genes)
+        if(myvals$select_data[,1]==2){
+          comparison <- row.match(ConvexCloud[,c(1,3)],myvals$select_data[,3:4])
+        } else comparison <- row.match(ConvexCloud[,c(1,2)],myvals$select_data[,3:4])
+        
+        myvals$legend_genes <- ConvexCloud[c(which(!is.na(comparison))), ]
+        legend_colors <- as.data.frame(cbind(legend_colors, as.data.frame(comparison)))
+        legend_colors <- subset(legend_colors, !is.na(legend_colors[,5]))
+      }
+      if(input$remove_genes){
+        remove_genes()
+        myvals$legend_genes <- myvals$RemoveGenesFromConvexCloud
+        # legend_colors <- legend_colors[c(row.match(legend_colors[,c(1:3)], myvals$legend_genes)), ]
+        
+      }
+      if(input$reset_genes){
+        if(input$remove_genes[1]<=input$reset_genes[1]){
+          reset()
+          myvals$legend_genes <- myvals$NewUMAP
+        }
+        
+      }
+      
+      
+      convex_colors <- as.data.frame(cbind(rownames(legend_colors), legend_colors[,4]))
+      # print(convex_colors)
+      
+      options(DT.options = list(pageLength = 25))
       df = as.data.frame(convex_colors)
       colnames(df) <- c("Names", "Colors")
       # style V6 based on values of V6
-      datatable(df, rownames = FALSE, extensions = 'Responsive', selection = 'none'
-      #           ,
-      # options = list(
-      #       rownames = F,
-      #       deferRender = TRUE,
-      #       scrollY = 200,
-      #       scroller = TRUE
-      #     )
-      ) %>% formatStyle(colnames(df),
-        'Names', 
-        # target = 'row',
+      datatable(df, rownames = FALSE, extensions = 'Responsive', selection = 'none') %>% formatStyle(colnames(df), 'Names', # target = 'row',
         backgroundColor = styleEqual(c(convex_colors[,1]), c(convex_colors[,2])), fontWeight = "bold"
         # , fontSize = '200%'
       )
