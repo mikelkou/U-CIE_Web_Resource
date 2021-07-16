@@ -1,27 +1,27 @@
-# if (!require("DT")) install.packages('DT', dependencies = T)
-# if (!require("config")) install.packages('config', dependencies = T)
-# if (!require("shiny")) install.packages('shiny', dependencies = T)
-# if (!require("shinyjs")) install.packages('shinyjs', dependencies = T)
-# if (!require("shinydashboard")) install.packages('shinydashboard', dependencies = T)
-# if (!require("scRNAseq")) install.packages('scRNAseq', dependencies = T) # NOT installed
-# if (!require("Matrix")) install.packages('Matrix', dependencies = T)
-# if (!require("dplyr")) install.packages('dplyr', dependencies = T)
-# if (!require("Seurat")) install.packages('Seurat', dependencies = T) # NOT installed 
-# if (!require("patchwork")) install.packages('patchwork', dependencies = T)
-# if (!require("rgl")) install.packages('rgl', dependencies = T)
-# if (!require("geometry")) install.packages('geometry', dependencies = T)
-# if (!require("ptinpoly")) install.packages('ptinpoly', dependencies = T)
-# if (!require("pracma")) install.packages('pracma', dependencies = T)
-# if (!require("plotly")) install.packages('plotly', dependencies = T)
-# if (!require("umap")) install.packages('umap', dependencies = T)
-# if (!require("readxl")) install.packages('readxl', dependencies = T)
-# if (!require("prodlim")) install.packages('prodlim', dependencies = T)
-# if (!require("shinyWidgets")) install.packages('shinyWidgets', dependencies = T)
+# if (!require("DT")) install.packages('DT', dependencies = T) !Done!
+# if (!require("config")) install.packages('config', dependencies = T) !Done!
+# if (!require("shiny")) install.packages('shiny', dependencies = T) !Done!
+# if (!require("shinyjs")) install.packages('shinyjs', dependencies = T) !Done!
+# if (!require("shinydashboard")) install.packages('shinydashboard', dependencies = T) !Done!
+# if (!require("scRNAseq")) BiocManager::install("scRNAseq") # NOT installed
+# if (!require("Matrix")) install.packages('Matrix', dependencies = T) !Done!
+# if (!require("dplyr")) install.packages('dplyr', dependencies = T) !Done!
+# if (!require("Seurat")) install.packages('Seurat', dependencies = T) !Done!
+# if (!require("patchwork")) install.packages('patchwork', dependencies = T) !Done! 
+# if (!require("rgl")) install.packages('rgl', dependencies = T) !Done!
+# if (!require("geometry")) install.packages('geometry', dependencies = T) !Done!
+# if (!require("ptinpoly")) install.packages('ptinpoly', dependencies = T) !Done!
+# if (!require("pracma")) install.packages('pracma', dependencies = T) !Done!
+# if (!require("plotly")) install.packages('plotly', dependencies = T) !Done!
+# if (!require("umap")) install.packages('umap', dependencies = T) !Done!
+# if (!require("readxl")) install.packages('readxl', dependencies = T) !Done!
+# if (!require("prodlim")) install.packages('prodlim', dependencies = T) !Done!
+# if (!require("shinyWidgets")) install.packages('shinyWidgets', dependencies = T) !Done!
 
 library(shiny)
 library(shinyjs)
 library(shinydashboard)
-library(scRNAseq)
+# library(scRNAseq)
 library(Matrix)
 library(dplyr)
 library(Seurat)
