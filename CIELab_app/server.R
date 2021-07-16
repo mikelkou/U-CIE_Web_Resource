@@ -18,13 +18,12 @@ withConsoleRedirect <- function(containerId, expr) {
   results
 }
 
-config <- config::get(file = "config.yml", use_parent = FALSE)
 
 # Define server logic required to draw a histogram
 shinyServer(function(input, output, session) {
   options(shiny.maxRequestSize = 100*1024^2)
-  path_conf <- config$global
-  source(path_conf, local = TRUE)
+  # path_conf <- config$global
+  source('global.R', local = TRUE)
   
   polygon <- ColorSpacePolygon(RGB_space)
     
@@ -85,7 +84,7 @@ shinyServer(function(input, output, session) {
           }
         },
         oR_Example1 = {
-          dataset1 <- log2FC_MatrixCounts_tc[1:500,1:500]
+          dataset1 <- data.frame(read.delim("log2FC_MatrixCounts_tc_cropped.tsv"))
           # log2FC_MatrixCounts <- log2FC_MatrixCounts_tc[1:500,1:500]
           # log2FC_MatrixCounts <- log2FC_MatrixCounts_tc
           # log2FC_MatrixCounts_tc <- data.frame(read.delim("~/Documents/Documents – SUN1012692/GitHub/CIELAB/log2FC_MatrixCounts_tc.tsv"))
@@ -93,17 +92,20 @@ shinyServer(function(input, output, session) {
           # print(log2FC_MatrixCounts[1:10,1:10])
         },
         oR_Example2 = {
-          dataset1 <- log2FC_MatrixCounts_ct[1:500,1:500]
+          dataset1 <- data.frame(read.delim("log2FC_MatrixCounts_ct.tsv"))
+          # dataset1 <- log2FC_MatrixCounts_ct[1:500,1:500]
           # log2FC_MatrixCounts <- log2FC_MatrixCounts_ct
           # log2FC_MatrixCounts <- log2FC_MatrixCounts_ct[1:1000,1:1000]
           # log2FC_MatrixCounts_ct <- data.frame(read.delim("~/Documents/Documents – SUN1012692/GitHub/CIELAB/log2FC_MatrixCounts_ct.tsv"))
           # log2FC_MatrixCounts <- data.frame(read.delim("~/Documents/GitHub/CIELAB/log2FC_MatrixCounts_ct.tsv"))
         }
       )
-      
       return(dataset1)
     }
     
+    # write.table(log2FC_MatrixCounts_tc[1:500,1:500], "log2FC_MatrixCounts_tc_cropped.tsv",
+    #             quote = F,sep = "\t", row.names = T, col.names = T
+    #             )
     output$uiLoadGraphOptionsOutput <- renderUI({
       if (is.null(input$uiLoadGraphOptionsInput))
         return()
