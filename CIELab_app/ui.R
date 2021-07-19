@@ -164,9 +164,9 @@ body <-
             br(),
             br(),
             column(6,plotlyOutput("satellite"),
-                   actionButton("remove_genes", "Remove Genes and Re-color!"), # After ISMB
-                   actionButton("reset_genes", "Reset"), # After ISMB
-                   uiOutput("reset")
+                   hidden(actionButton("remove_genes", "Remove Genes and Re-color!")), # Hidden up to ISMB
+                   hidden(actionButton("reset_genes", "Reset")), # Hidden up to ISMB
+                   # uiOutput("reset")
                    ), 
             
             column(4,offset=1,dataTableOutput("legend")),

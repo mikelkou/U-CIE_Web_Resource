@@ -1042,14 +1042,9 @@ shinyServer(function(input, output, session) {
         
       }
       
-      
       convex_colors <- as.data.frame(cbind(rownames(legend_colors), legend_colors[,4]))
-      
-      # sweep(t(col2rgb(c('#fff000', '#000fff', '#45738a'))), MARGIN=2, c(0.2126, 0.7152, 0.0722), `*`)
-      
-      convex_colors <- cbind(convex_colors, brightness = rowSums(sweep(t(col2rgb(c(legend_colors[,4]))), MARGIN=2, c(0.2126, 0.7152, 0.0722), `*`)))
-      # print(convex_colors)
-      
+      convex_colors <- cbind(convex_colors, brightness = rowSums(sweep(t(col2rgb(c(legend_colors[,4]))), MARGIN=2, c(0.2126, 0.7152, 0.0722), `*`))) # font color based on brighness
+
       options(DT.options = list(pageLength = 25))
       df = as.data.frame(convex_colors)
       colnames(df) <- c("Names", "Colors", "brightness")
@@ -1061,9 +1056,8 @@ shinyServer(function(input, output, session) {
         formatStyle(
           'brightness',
           target = 'row',
-          color = styleInterval(40, c('gray', 'black'))
+          color = styleInterval(50, c('gray', 'black'))
         )
-      
       
     })
     
