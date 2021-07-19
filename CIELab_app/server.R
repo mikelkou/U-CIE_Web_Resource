@@ -409,6 +409,7 @@ shinyServer(function(input, output, session) {
                        "umap" = "upload"
       )
       updateTabItems(session, "tabs", newtab)
+      
     })
     
     
@@ -1007,6 +1008,8 @@ shinyServer(function(input, output, session) {
     
     #--- Legend ---#
     output$legend <- renderDataTable({
+      if(length(myvals$NewUMAP)==0){}
+      else{
       ConvexCloud <- myvals$NewUMAP
       ConvexCloud <- as.data.frame(ConvexCloud)
       
@@ -1072,7 +1075,7 @@ shinyServer(function(input, output, session) {
           color = styleInterval(50, c('gray', 'black'))
         )
       
-      
+      }
     })
     
     
