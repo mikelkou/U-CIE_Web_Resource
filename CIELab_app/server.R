@@ -93,6 +93,7 @@ shinyServer(function(input, output, session) {
         },
         oR_Example2 = {
           dataset1 <- data.frame(read.delim("log2FC_MatrixCounts_ct.tsv"))
+          # dataset1 <- data.frame(log2FC_MatrixCounts_ct)
           # dataset1 <- log2FC_MatrixCounts_ct[1:500,1:500]
           # log2FC_MatrixCounts <- log2FC_MatrixCounts_ct
           # log2FC_MatrixCounts <- log2FC_MatrixCounts_ct[1:1000,1:1000]
@@ -364,6 +365,7 @@ shinyServer(function(input, output, session) {
           input$btnanalysis
           withConsoleRedirect("console", {
           log2FC_MatrixCounts <- loadNetworkFromFile()
+          # log2FC_MatrixCounts <- log2FC_MatrixCounts_ct
             print("2")
             SDMoreThanOnelog2FC_MatrixCounts <- c()
             for(i in 1:ncol(log2FC_MatrixCounts)){
@@ -398,6 +400,17 @@ shinyServer(function(input, output, session) {
         
       }
     })
+    
+    
+    # Change tab when UMAP is ready
+    switch_tabs <- observeEvent(input$btnanalysis, {
+      newtab <- switch(input$tabs,
+                       "upload" = "umap",
+                       "umap" = "upload"
+      )
+      updateTabItems(session, "tabs", newtab)
+    })
+    
     
     
     observe({
@@ -1043,7 +1056,7 @@ shinyServer(function(input, output, session) {
       }
       
       convex_colors <- as.data.frame(cbind(rownames(legend_colors), legend_colors[,4]))
-      convex_colors <- cbind(convex_colors, brightness = rowSums(sweep(t(col2rgb(c(legend_colors[,4]))), MARGIN=2, c(0.2126, 0.7152, 0.0722), `*`))) # font color based on brighness
+      convex_colors <- cbind(convex_colors, brightness = rowSums(sweep(t(col2rgb(c(legend_colors[,4]))), MARGIN=2, c(0.2126, 0.7152, 0.0722), `*`))) # font color based on brightness
 
       options(DT.options = list(pageLength = 25))
       df = as.data.frame(convex_colors)
@@ -1058,6 +1071,7 @@ shinyServer(function(input, output, session) {
           target = 'row',
           color = styleInterval(50, c('gray', 'black'))
         )
+      
       
     })
     
