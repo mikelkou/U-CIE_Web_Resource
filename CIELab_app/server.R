@@ -294,6 +294,7 @@ shinyServer(function(input, output, session) {
       }
       if(input$matrix == "3D data"){
         myvals$umap_dist <- myvals$uploaded_df
+        myvals$NewUMAP <- myvals$uploaded_df
         print("3D")
       }
       }
