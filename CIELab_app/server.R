@@ -819,7 +819,7 @@ shinyServer(function(input, output, session) {
     
     
     
-    output$satellite1 <- renderPlotly({
+    output$satellite <- renderPlotly({
       # myvals$select_data <- event_data("plotly_selected")
       
       myvals$select_data <- event_data("plotly_selected", source = "A")
@@ -896,8 +896,7 @@ shinyServer(function(input, output, session) {
           source = "A",
           type = "scatter",
           mode = "markers",
-          # color = I("black"),
-          # color = I(colors),
+          # symbol="square",
           legendgroup = 'UMAP point cloud', showlegend = T,
           name = 'UMAP point cloud',
           text = c(rownames(ConvexCloud)),
@@ -920,7 +919,8 @@ shinyServer(function(input, output, session) {
                                       fillcolor = 'rgba(206, 211, 214, 0.1)', 
                                       name = 'CIE L* a* b*',
                                       legendgroup = 'CIE L* a* b*', showlegend = T,
-                                      marker = list(color = I(polygon_colors[,4]), opacity = 1, size = 10),
+                                      marker = list(color = I(polygon_colors[,4]), opacity = 1, size = 10, symbol= 'cross', line = list(
+                                        color = 'black', width=0.5)),
                                       text = c(polygon_colors[,4]), hoverinfo = 'text', 
                                       line = list(color = '#a5c0cf'))
         fig1 <- fig1 %>% 
@@ -937,6 +937,7 @@ shinyServer(function(input, output, session) {
           source = "A",
           type = "scatter",
           mode = "markers",
+          # symbol="square",
           # color = I("black"),
           # color = I(colors),
           legendgroup = 'UMAP point cloud', showlegend = F,
@@ -962,7 +963,8 @@ shinyServer(function(input, output, session) {
                                       fillcolor = 'rgba(206, 211, 214, 0.1)', hoveron = 'points+fills',
                                       legendgroup = 'CIE L* a* b*', showlegend = F ,
                                       name = 'CIE L* a* b*',
-                                      marker = list(color = I(polygon_colors[,4]), opacity = 1, size = 10), 
+                                      marker = list(color = I(polygon_colors[,4]), opacity = 1, size = 10, symbol= 'cross', line = list(
+                                        color = 'black', width=0.5)), 
                                       text = c(polygon_colors[,4]), hoverinfo = 'text', 
                                       line = list(color = '#a5c0cf'))
         
@@ -1042,16 +1044,25 @@ shinyServer(function(input, output, session) {
       
       
       convex_colors <- as.data.frame(cbind(rownames(legend_colors), legend_colors[,4]))
+      
+      # sweep(t(col2rgb(c('#fff000', '#000fff', '#45738a'))), MARGIN=2, c(0.2126, 0.7152, 0.0722), `*`)
+      
+      convex_colors <- cbind(convex_colors, brightness = rowSums(sweep(t(col2rgb(c(legend_colors[,4]))), MARGIN=2, c(0.2126, 0.7152, 0.0722), `*`)))
       # print(convex_colors)
       
       options(DT.options = list(pageLength = 25))
       df = as.data.frame(convex_colors)
-      colnames(df) <- c("Names", "Colors")
-      # style V6 based on values of V6
-      datatable(df, rownames = FALSE, extensions = 'Responsive', selection = 'none') %>% formatStyle(colnames(df), 'Names', # target = 'row',
+      colnames(df) <- c("Names", "Colors", "brightness")
+      
+      datatable(df, rownames = FALSE, extensions = 'Responsive', selection = 'none', options = list(columnDefs = list(list(targets = 2, visible = FALSE)))) %>% formatStyle(colnames(df), 'Names', # target = 'row',
         backgroundColor = styleEqual(c(convex_colors[,1]), c(convex_colors[,2])), fontWeight = "bold"
         # , fontSize = '200%'
-      )
+      ) %>%
+        formatStyle(
+          'brightness',
+          target = 'row',
+          color = styleInterval(40, c('gray', 'black'))
+        )
       
       
     })

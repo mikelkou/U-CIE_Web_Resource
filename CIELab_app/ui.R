@@ -163,10 +163,11 @@ body <-
             # h2("Satellites"),
             br(),
             br(),
-            column(6,box(plotlyOutput("satellite1"),width=12,title="Satellite",height = "800px",background ="black"),
-                   actionButton("remove_genes", "Remove Genes and Re-color!"),
-                   actionButton("reset_genes", "Reset"),
-                   uiOutput("reset")), 
+            column(6,plotlyOutput("satellite"),
+                   actionButton("remove_genes", "Remove Genes and Re-color!"), # After ISMB
+                   actionButton("reset_genes", "Reset"), # After ISMB
+                   uiOutput("reset")
+                   ), 
             
             column(4,offset=1,dataTableOutput("legend")),
 
