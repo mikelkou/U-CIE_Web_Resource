@@ -39,10 +39,13 @@ library(umap) # for distance matrix
 library(readxl)
 library(prodlim)
 library(shinyWidgets)
+library(colorspace)
 
-library(config)
-# library(future)
-# library(promises)
+# library(config)
+library(future)
+library(promises)
+plan(multisession, workers = 2L)
+
 # library(ipc)
 # 
 # library(foreach)

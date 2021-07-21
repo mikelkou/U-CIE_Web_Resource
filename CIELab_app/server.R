@@ -19,7 +19,7 @@ withConsoleRedirect <- function(containerId, expr) {
 }
 
 
-# Define server logic required to draw a histogram
+# future_promise({
 shinyServer(function(input, output, session) {
   options(shiny.maxRequestSize = 100*1024^2)
   # path_conf <- config$global
@@ -101,12 +101,11 @@ shinyServer(function(input, output, session) {
           # log2FC_MatrixCounts <- data.frame(read.delim("~/Documents/GitHub/CIELAB/log2FC_MatrixCounts_ct.tsv"))
         }
       )
+      
       return(dataset1)
     }
     
-    # write.table(log2FC_MatrixCounts_tc[1:500,1:500], "log2FC_MatrixCounts_tc_cropped.tsv",
-    #             quote = F,sep = "\t", row.names = T, col.names = T
-    #             )
+    
     output$uiLoadGraphOptionsOutput <- renderUI({
       if (is.null(input$uiLoadGraphOptionsInput))
         return()
@@ -131,6 +130,7 @@ shinyServer(function(input, output, session) {
     ###### Upload #######
     doAddNetwork <- observeEvent(input$btnanalysis, {
       myvals$uploaded_df <- loadNetworkFromFile()
+      
       # print(head(myvals$uploaded_df))
       # if (!is.null(dataset)) {
       #     nid <- UUIDgenerate(T)      #time-base UUID is generated
@@ -201,17 +201,24 @@ shinyServer(function(input, output, session) {
     
     observe({
       req(input$btnanalysis)
-        if (!is.null(myvals$uploaded_df) & !is.null(input$matrix)) {
-          print("ho")
+      if(is.null(myvals$uploaded_df)) {
+        return()
+      }
+      
+        if(input$uiLoadGraphOptionsInput=="oF") {
+        if(is.null(input$matrix)){
+          return()
+        }
+          
         if(input$matrix == 'Single-cells'){
           print("sc")
-          # matrix_counts <- read.csv("~/Desktop/CBPP_22012021/Lars_Lab/single_cells/GSE75748_sc_cell_type_ec.csv")
+          if(input$uiLoadGraphOptionsInput != "oR_Example1" || input$uiLoadGraphOptionsInput != "oR_Example2"){
           matrix_counts <- myvals$uploaded_df
           
           rownames(matrix_counts) <- matrix_counts[,1]
               matrix_counts <- matrix_counts[,2:ncol(matrix_counts)]
               matrix_counts <- data.matrix(matrix_counts) # must be a matrix object!
-
+              
               TransposedMatrixCounts <- t(matrix_counts)
               
           #     cnt <- 0
@@ -262,9 +269,11 @@ shinyServer(function(input, output, session) {
          # myvals$umap_dist <- myvals$uploaded_df
          
          print("Single cells done!")
-        } 
+          } 
+        }
       
       if(input$matrix == 'High Dimensional'){
+        if(input$uiLoadGraphOptionsInput != "oR_Example1" || input$uiLoadGraphOptionsInput != "oR_Example2"){
         # data <- CreateSeuratObject(counts = myvals$uploaded_df)
         # all.genes <- rownames(data)
         # data <- ScaleData(data, do.scale =  F, do.center = F, features = all.genes)
@@ -281,8 +290,11 @@ shinyServer(function(input, output, session) {
         
         umap_dist <- data_umap_coord
         myvals$umap_dist <- umap_dist
+        }
       }
       if(input$matrix == 'Distance matrix'){
+        if(input$uiLoadGraphOptionsInput != "oR_Example1" || input$uiLoadGraphOptionsInput != "oR_Example2"){
+          
         withConsoleRedirect("console", {
         data <- as.matrix(dist(myvals$uploaded_df))
         data <- umap(data, input="dist", n_components = 3)
@@ -291,18 +303,19 @@ shinyServer(function(input, output, session) {
         umap_dist <- data_umap_coord
         myvals$umap_dist <- umap_dist
         print("Distance")
+        }
       }
       if(input$matrix == "3D data"){
+        if(input$uiLoadGraphOptionsInput != "oR_Example1" || input$uiLoadGraphOptionsInput != "oR_Example2"){
         myvals$umap_dist <- myvals$uploaded_df
         myvals$NewUMAP <- myvals$uploaded_df
         print("3D")
+        }
       }
-      }
-      # }
-        if(is.null(input$matrix)){
-          print("hi")
-      if(input$uiLoadGraphOptionsInput == "oR_Example1"){
-        # print(input$btnanalysis)
+      } # of
+      
+      if(input$uiLoadGraphOptionsInput == "oR_Example1" & !is.null(input$matrix) 
+         | input$uiLoadGraphOptionsInput == "oR_Example1" & is.null(input$matrix)){
         input$btnanalysis
         
           withConsoleRedirect("console", {
@@ -361,7 +374,7 @@ shinyServer(function(input, output, session) {
             # print(myvals$umap_dist)
         }
         
-        if(input$uiLoadGraphOptionsInput == "oR_Example2"){
+        if(input$uiLoadGraphOptionsInput == "oR_Example2" && !is.null(input$matrix) || input$uiLoadGraphOptionsInput == "oR_Example1" && is.null(input$matrix)){
             # 2
           input$btnanalysis
           withConsoleRedirect("console", {
@@ -399,7 +412,7 @@ shinyServer(function(input, output, session) {
         }
       # myvals$umap_dist_stored <- myvals$umap_dist
         
-      }
+      # }
     })
     
     
@@ -708,7 +721,6 @@ shinyServer(function(input, output, session) {
           umap_dist <- myvals$RemoveGenesFromConvexCloud
         }
         
-        
       input$scalingButton
       
       if(!is.null(input$table_rows_selected)){
@@ -1004,12 +1016,11 @@ shinyServer(function(input, output, session) {
     
     
     
-    
-    
-    
     #--- Legend ---#
     output$legend <- renderDataTable({
-      if(length(myvals$NewUMAP)==0){}
+      if(length(myvals$NewUMAP)==0){
+        return()
+      }
       else{
       ConvexCloud <- myvals$NewUMAP
       ConvexCloud <- as.data.frame(ConvexCloud)
@@ -1027,16 +1038,15 @@ shinyServer(function(input, output, session) {
         class = "data.frame"
       )
       
-      library(colorspace)
       LABdata <- with(rawdata, LAB(Lstar, Astar, Bstar))
       
       legend_colors <- as.data.frame(cbind(ConvexCloud,hex(LABdata, fix = TRUE)))
       # print(legend_colors)
       
+      
       if (length(myvals$select_data)==0) {
         myvals$legend_genes <- myvals$NewUMAP
       } else {
-        # req(input$remove_genes)
         if(myvals$select_data[,1]==2){
           comparison <- row.match(ConvexCloud[,c(1,3)],myvals$select_data[,3:4])
         } else comparison <- row.match(ConvexCloud[,c(1,2)],myvals$select_data[,3:4])
@@ -1049,7 +1059,6 @@ shinyServer(function(input, output, session) {
         remove_genes()
         myvals$legend_genes <- myvals$RemoveGenesFromConvexCloud
         # legend_colors <- legend_colors[c(row.match(legend_colors[,c(1:3)], myvals$legend_genes)), ]
-        
       }
       if(input$reset_genes){
         if(input$remove_genes[1]<=input$reset_genes[1]){
@@ -1061,12 +1070,14 @@ shinyServer(function(input, output, session) {
       
       convex_colors <- as.data.frame(cbind(rownames(legend_colors), legend_colors[,4]))
       convex_colors <- cbind(convex_colors, brightness = rowSums(sweep(t(col2rgb(c(legend_colors[,4]))), MARGIN=2, c(0.2126, 0.7152, 0.0722), `*`))) # font color based on brightness
-
-      options(DT.options = list(pageLength = 25))
-      df = as.data.frame(convex_colors)
-      colnames(df) <- c("Names", "Colors", "brightness")
       
-      datatable(df, rownames = FALSE, extensions = 'Responsive', selection = 'none', options = list(columnDefs = list(list(targets = 2, visible = FALSE)))) %>% formatStyle(colnames(df), 'Names', # target = 'row',
+      options(DT.options = list(pageLength = 25))
+      df = as.data.frame(convex_colors)[1:100,]
+      colnames(df) <- c("Names", "Colors", "brightness")
+      df <- na.omit(df)
+      
+      datatable(df, rownames = FALSE, extensions = 'Responsive', selection = 'none', 
+                options = list(columnDefs = list(list(targets = 2, visible = FALSE)))) %>% formatStyle(colnames(df), 'Names', # target = 'row',
         backgroundColor = styleEqual(c(convex_colors[,1]), c(convex_colors[,2])), fontWeight = "bold"
         # , fontSize = '200%'
       ) %>%
@@ -1101,3 +1112,5 @@ shinyServer(function(input, output, session) {
       )
     })
 })
+
+# }) #future promises
