@@ -161,8 +161,8 @@ body <-
             br(),
             # fluidRow(box(plotlyOutput("plotly_plot"),width=12,title="UMAP with CIE L* a* b* colors", height = "800px", background ="black",collapsible = F),
             #          box(dataTableOutput("table"))),
-            box(plotlyOutput("plotly_plot"), width = NULL, height = "800px"),
-            box(dataTableOutput("table"), width = NULL),
+            box(plotlyOutput("plotly_plot"), title = "UMAP with CIE L* a* b* colors", width = NULL, height = "800px"),
+            box(dataTableOutput("table"), title = "Color-options based on optimization algorithm", width = NULL),
             uiOutput("list_of_parameters")), 
             
     

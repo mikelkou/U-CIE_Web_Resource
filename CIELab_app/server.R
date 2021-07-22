@@ -202,7 +202,6 @@ shinyServer(function(input, output, session) {
     observe({
       req(input$btnanalysis)
       isolate({
-        show_modal_spinner(spin = "circle", text = "Please wait..." )
       # withProgress(min = 0, max = 1, {
       #   disable("btnanalysis")
       #   incProgress(message = "Calculation in progress",
@@ -213,6 +212,9 @@ shinyServer(function(input, output, session) {
       }
       
         if(input$uiLoadGraphOptionsInput=="oF") {
+          req(input$matrix)
+          isolate({
+            show_modal_spinner(spin = "circle", text = "Please wait..." )
         if(is.null(input$matrix)){
           return()
         }
@@ -222,12 +224,15 @@ shinyServer(function(input, output, session) {
           if(input$uiLoadGraphOptionsInput != "oR_Example1" || input$uiLoadGraphOptionsInput != "oR_Example2"){
           # matrix_counts <- myvals$uploaded_df
           matrix_counts <- loadNetworkFromFile()
+          # print(is.character(matrix_counts[,1]))
           
-          rownames(matrix_counts) <- matrix_counts[,1]
-              matrix_counts <- matrix_counts[,2:ncol(matrix_counts)]
-              matrix_counts <- data.matrix(matrix_counts) # must be a matrix object!
-              
-              TransposedMatrixCounts <- t(matrix_counts)
+          if(is.character(matrix_counts[,1])){
+            rownames(matrix_counts) <- matrix_counts[,1]
+            matrix_counts <- matrix_counts[,2:ncol(matrix_counts)]
+          }
+          
+          matrix_counts <- data.matrix(matrix_counts) # must be a matrix object!
+          TransposedMatrixCounts <- t(matrix_counts)
               
           #     cnt <- 0
           #     FC_MatrixCounts <- c()
@@ -315,6 +320,12 @@ shinyServer(function(input, output, session) {
       }
       if(input$matrix == "3D data"){
         if(input$uiLoadGraphOptionsInput != "oR_Example1" || input$uiLoadGraphOptionsInput != "oR_Example2"){
+          # print(ncol(loadNetworkFromFile()))
+          
+          if(ncol(loadNetworkFromFile())!=3){
+            showModal(modalDialog(title = "Not 3D! Please check again the dataset.", easyClose = T, fade = T))
+            return()
+          }
         # myvals$umap_dist <- myvals$uploaded_df
         # myvals$NewUMAP <- myvals$uploaded_df
         
@@ -323,11 +334,15 @@ shinyServer(function(input, output, session) {
         print("3D")
         }
       }
+          }) # isolate
       } # of
       
       if(input$uiLoadGraphOptionsInput == "oR_Example1" & !is.null(input$matrix) 
          | input$uiLoadGraphOptionsInput == "oR_Example1" & is.null(input$matrix)){
         input$btnanalysis
+        
+        isolate({
+          show_modal_spinner(spin = "circle", text = "Please wait..." )
         
           withConsoleRedirect("console", {
             
@@ -383,11 +398,16 @@ shinyServer(function(input, output, session) {
             umap_dist <- data_umap_coord
             myvals$umap_dist <- umap_dist
             # print(myvals$umap_dist)
+      }) # isolate
         }
         
         if(input$uiLoadGraphOptionsInput == "oR_Example2" && !is.null(input$matrix) || input$uiLoadGraphOptionsInput == "oR_Example1" && is.null(input$matrix)){
             # 2
           input$btnanalysis
+         
+           isolate({
+            show_modal_spinner(spin = "circle", text = "Please wait..." )
+            
           withConsoleRedirect("console", {
           log2FC_MatrixCounts <- loadNetworkFromFile()
           # log2FC_MatrixCounts <- log2FC_MatrixCounts_ct
@@ -420,14 +440,17 @@ shinyServer(function(input, output, session) {
             umap_dist <- data_umap_coord
             
             myvals$umap_dist <- umap_dist
+        }) # isolate
         }
+        
       # myvals$umap_dist_stored <- myvals$umap_dist
         enable("btnanalysis")
         
       # })
         remove_modal_spinner()
-    }) # isolate
+    
       
+    }) # isolate analysis
     })
     
     
@@ -462,7 +485,6 @@ shinyServer(function(input, output, session) {
             req(input$remove_genes)
             umap_dist <- myvals$RemoveGenesFromConvexCloud
           }
-          
           
           input$weightButton
         WL <- isolate(input$weightL)
