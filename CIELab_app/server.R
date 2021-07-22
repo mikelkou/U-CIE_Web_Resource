@@ -202,11 +202,12 @@ shinyServer(function(input, output, session) {
     observe({
       req(input$btnanalysis)
       isolate({
-      withProgress(min = 0, max = 1, {
-        disable("btnanalysis")
-        incProgress(message = "Calculation in progress",
-                    # detail = "This may take a while...",
-                    amount = .1)
+        show_modal_spinner(spin = "circle", text = "Please wait..." )
+      # withProgress(min = 0, max = 1, {
+      #   disable("btnanalysis")
+      #   incProgress(message = "Calculation in progress",
+      #               # detail = "This may take a while...",
+      #               amount = .1)
       if(is.null(myvals$uploaded_df)) {
         return()
       }
@@ -422,8 +423,11 @@ shinyServer(function(input, output, session) {
         }
       # myvals$umap_dist_stored <- myvals$umap_dist
         enable("btnanalysis")
-      })
+        
+      # })
+        remove_modal_spinner()
     }) # isolate
+      
     })
     
     
@@ -443,15 +447,17 @@ shinyServer(function(input, output, session) {
     
     
     observe({
-      withProgress(min = 0, max = 1, {
-        incProgress(message = "Calculation in progress",
-                    # detail = "This may take a while...",
-                    amount = .1)
+      # withProgress(min = 0, max = 1, {
+      #   incProgress(message = "Calculation in progress",
+      #               # detail = "This may take a while...",
+      #               amount = .1)
         
         umap_dist <- myvals$umap_dist 
         
         if(is.null(umap_dist)){}
         else{
+          show_modal_spinner(spin = "circle", text = "Please wait..." )
+          
           if(!is.null(myvals$RemoveGenesFromConvexCloud)){
             req(input$remove_genes)
             umap_dist <- myvals$RemoveGenesFromConvexCloud
@@ -670,10 +676,11 @@ shinyServer(function(input, output, session) {
 
         # end_time <- Sys.time()
         # print(end_time)
-      
+        remove_modal_spinner()
         print("~End~")  
         }
-      })
+        
+      # })
     })
     
     

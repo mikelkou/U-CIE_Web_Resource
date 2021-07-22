@@ -17,7 +17,7 @@
 # if (!require("readxl")) install.packages('readxl', dependencies = T) !Done!
 # if (!require("prodlim")) install.packages('prodlim', dependencies = T) !Done!
 # if (!require("shinyWidgets")) install.packages('shinyWidgets', dependencies = T) !Done!
-
+library(shinybusy)
 library(shiny)
 library(shinyjs)
 library(shinydashboard)
