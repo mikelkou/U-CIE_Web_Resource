@@ -159,9 +159,10 @@ body <-
                      # h2("Parameters and UMAP"),
             br(),
             br(),
-            fluidRow(box(plotlyOutput("plotly_plot"),width=12,title="UMAP with CIE L* a* b* colors",height = "800px",background ="black",collapsible = F),
-                     box(dataTableOutput("table"))),
-            
+            # fluidRow(box(plotlyOutput("plotly_plot"),width=12,title="UMAP with CIE L* a* b* colors", height = "800px", background ="black",collapsible = F),
+            #          box(dataTableOutput("table"))),
+            box(plotlyOutput("plotly_plot"), width = NULL, height = "800px"),
+            box(dataTableOutput("table"), width = NULL),
             uiOutput("list_of_parameters")), 
             
     

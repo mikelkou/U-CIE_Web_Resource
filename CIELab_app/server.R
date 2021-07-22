@@ -101,7 +101,7 @@ shinyServer(function(input, output, session) {
           # log2FC_MatrixCounts <- data.frame(read.delim("~/Documents/GitHub/CIELAB/log2FC_MatrixCounts_ct.tsv"))
         }
       )
-      
+      enable("btnanalysis")
       return(dataset1)
     }
     
@@ -129,8 +129,8 @@ shinyServer(function(input, output, session) {
     
     ###### Upload #######
     doAddNetwork <- observeEvent(input$btnanalysis, {
+      # isolate({
       myvals$uploaded_df <- loadNetworkFromFile()
-      
       # print(head(myvals$uploaded_df))
       # if (!is.null(dataset)) {
       #     nid <- UUIDgenerate(T)      #time-base UUID is generated
@@ -174,8 +174,8 @@ shinyServer(function(input, output, session) {
       #     append = FALSE
       #   )
       
+    # })
     })
-    
     
     
     output$contents <- renderDataTable({
@@ -201,6 +201,12 @@ shinyServer(function(input, output, session) {
     
     observe({
       req(input$btnanalysis)
+      isolate({
+      withProgress(min = 0, max = 1, {
+        disable("btnanalysis")
+        incProgress(message = "Calculation in progress",
+                    # detail = "This may take a while...",
+                    amount = .1)
       if(is.null(myvals$uploaded_df)) {
         return()
       }
@@ -415,13 +421,17 @@ shinyServer(function(input, output, session) {
             myvals$umap_dist <- umap_dist
         }
       # myvals$umap_dist_stored <- myvals$umap_dist
-        
-      # }
+        enable("btnanalysis")
+      })
+    }) # isolate
     })
     
     
     # Change tab when UMAP is ready
     switch_tabs <- observeEvent(input$btnanalysis, {
+      if(is.null(loadNetworkFromFile())){
+        return()
+      }
       newtab <- switch(input$tabs,
                        "upload" = "umap",
                        "umap" = "upload"
@@ -807,7 +817,7 @@ shinyServer(function(input, output, session) {
             width = 2
         )
         ,
-        width = 735, height = 720
+        width = 1000, height = 720
     )
     fig <- fig %>% layout(scene = list(
         xaxis = axx,
@@ -1075,8 +1085,8 @@ shinyServer(function(input, output, session) {
       convex_colors <- as.data.frame(cbind(rownames(legend_colors), legend_colors[,4]))
       convex_colors <- cbind(convex_colors, brightness = rowSums(sweep(t(col2rgb(c(legend_colors[,4]))), MARGIN=2, c(0.2126, 0.7152, 0.0722), `*`))) # font color based on brightness
       
-      options(DT.options = list(pageLength = 25))
-      df = as.data.frame(convex_colors)[1:100,]
+      options(DT.options = list(pageLength = 15))
+      df = as.data.frame(convex_colors)
       colnames(df) <- c("Names", "Colors", "brightness")
       df <- na.omit(df)
       
