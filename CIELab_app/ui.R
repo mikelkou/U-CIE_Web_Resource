@@ -111,13 +111,17 @@ body <-
                      #                          'Distance matrix'=  'Distance matrix',
                      #                          '3D data' = '3D data'),
                      #              selected = '-'),
-                     prettyRadioButtons("matrix", "Type of Matrix:",
+                     
+                     conditionalPanel(
+                       condition = "input.uiLoadGraphOptionsInput == 'oF'",
+                     prettyRadioButtons("matrix", "Type of Matrix",
                                   choices = c('Single-cells' = 'Single-cells',
                                               'High Dimensional' = 'High Dimensional',
                                               'Distance matrix'=  'Distance matrix',
                                               '3D data' = '3D data'), 
-                                  selected = character(0), status = 'warning'),
-                     
+                                  selected = character(0), status = 'warning', inline = T)
+                     ),
+                     br(),
                      # Input: Select separator ----
                      
                      # prettyRadioButtons("sep", "Type of file",
@@ -132,7 +136,7 @@ body <-
                                   choices = c(None = "",
                                               "Double Quote" = '"',
                                               "Single Quote" = "'"),
-                                  selected = '', status = 'info'),
+                                  selected = '', status = 'info', inline = T),
                      
                      # Horizontal line ----
                      tags$hr(),
@@ -141,7 +145,7 @@ body <-
                      prettyRadioButtons("disp", "Display",
                                   choices = c(Head = "head",
                                               All = "all"),
-                                  selected = "head", status = 'info'),
+                                  selected = "head", status = 'info', inline = T),
                      tags$hr(),
                      uiOutput("uploaded_dataset"),
                      # box(tableOutput("contents"), width=12,background ="purple"),

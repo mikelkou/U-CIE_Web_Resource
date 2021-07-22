@@ -213,7 +213,8 @@ shinyServer(function(input, output, session) {
         if(input$matrix == 'Single-cells'){
           print("sc")
           if(input$uiLoadGraphOptionsInput != "oR_Example1" || input$uiLoadGraphOptionsInput != "oR_Example2"){
-          matrix_counts <- myvals$uploaded_df
+          # matrix_counts <- myvals$uploaded_df
+          matrix_counts <- loadNetworkFromFile()
           
           rownames(matrix_counts) <- matrix_counts[,1]
               matrix_counts <- matrix_counts[,2:ncol(matrix_counts)]
@@ -284,7 +285,7 @@ shinyServer(function(input, output, session) {
         # data <- RunUMAP(data, dims = 1:50, n.components = 3L)
         # data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
         withConsoleRedirect("console", {
-        data <- umap(myvals$uploaded_df, ret_nn = TRUE, n_neighbors = 5, n_components = 3) # library(uwot)
+        data <- umap(loadNetworkFromFile(), ret_nn = TRUE, n_neighbors = 5, n_components = 3) # library(uwot)
         data_umap_coord <- as.data.frame(data$embedding)
         })
         
@@ -296,7 +297,7 @@ shinyServer(function(input, output, session) {
         if(input$uiLoadGraphOptionsInput != "oR_Example1" || input$uiLoadGraphOptionsInput != "oR_Example2"){
           
         withConsoleRedirect("console", {
-        data <- as.matrix(dist(myvals$uploaded_df))
+        data <- as.matrix(dist(loadNetworkFromFile()))
         data <- umap(data, input="dist", n_components = 3)
         data_umap_coord <- as.data.frame(data$layout)
         })
@@ -307,8 +308,11 @@ shinyServer(function(input, output, session) {
       }
       if(input$matrix == "3D data"){
         if(input$uiLoadGraphOptionsInput != "oR_Example1" || input$uiLoadGraphOptionsInput != "oR_Example2"){
-        myvals$umap_dist <- myvals$uploaded_df
-        myvals$NewUMAP <- myvals$uploaded_df
+        # myvals$umap_dist <- myvals$uploaded_df
+        # myvals$NewUMAP <- myvals$uploaded_df
+        
+        myvals$umap_dist <- loadNetworkFromFile()
+        myvals$NewUMAP <- loadNetworkFromFile()
         print("3D")
         }
       }
