@@ -18,7 +18,6 @@ withConsoleRedirect <- function(containerId, expr) {
   results
 }
 
-
 # future_promise({
 shinyServer(function(input, output, session) {
   options(shiny.maxRequestSize = 100*1024^2)
@@ -819,13 +818,13 @@ shinyServer(function(input, output, session) {
     myvals$DownloadFile <- DownloadFile
     
     axx <- list(nticks = 4,
-                title = "UMAP1")
+                title = "L*")
     
     axy <- list(nticks = 4,
-                title = "UMAP2")
+                title = "a*")
     
     axz <- list(nticks = 4,
-                title = "UMAP3")
+                title = "b*")
     
     
     myvals$colors <- as.data.frame(cbind(NewUMAP,hex(LABdata, fix = TRUE)))
@@ -1137,7 +1136,7 @@ shinyServer(function(input, output, session) {
     #--- Downloads ---#
     output$downloadData <- downloadHandler(
       filename = function() {
-        paste('Hex_codes-', input$file1, "-" ,Sys.Date(), '.tsv', sep='')
+        paste('Hex_codes-', input$file1, "-" , Sys.Date(), '.tsv', sep='')
       },
       content = function(con) {
         write.table(myvals$DownloadFile, con, quote = F, row.names = F, col.names = F, sep = "\t")

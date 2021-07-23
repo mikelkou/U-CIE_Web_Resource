@@ -12,6 +12,8 @@ source('global.R', local = TRUE)
 options(shiny.maxRequestSize = 100*1024^2)
 # shinyUI(
 
+
+
 sidebar <- dashboardSidebar(
     # sidebarMenu(id="tabs", sidebarMenuOutput("menu"))
     sidebarMenu(id="tabs",
@@ -67,6 +69,10 @@ sidebar <- dashboardSidebar(
 body <- 
     dashboardBody(
         fluidPage(
+          tags$script(HTML(
+            'if (!document.cookie.includes("UCIEsession=")) document.cookie = "UCIEsession="+parseInt(Math.floor(Math.random()*1024))'
+          )),
+          
         # fixedPage(
           useShinyjs(),
     # Application title
