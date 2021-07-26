@@ -19,6 +19,7 @@ sidebar <- dashboardSidebar(
                 menuItem("Upload Files", tabName = "upload", icon = icon("file-upload", lib = "font-awesome")),
                 menuItem("3D View", tabName = "umap", icon = icon("bar-chart-o")),
                 menuItem("2D projections", icon = icon("bar-chart-o"), tabName = "satellites"),
+                menuItem("Console output", icon = icon("terminal", lib = "font-awesome"), tabName = "console"),
                          # badgeLabel = "new", badgeColor = "green"),
                 conditionalPanel(
                   condition = "input.btnanalysis != 0",
@@ -111,19 +112,21 @@ body <-
                        "2: Choose File(s)",
                        c(
                          "File upload" = "oF",
-                         "Small example: GSE75748_time_course" = "oR_Example1",
-                         "Big example: GSE75748_cell_type" = "oR_Example2"
+                         "Single-cells example: GSE75748_time_course" = "oR_Example1",
+                         # "Single-cells Big example: GSE75748_cell_type" = "oR_Example2",
+                         "3D example" = "oR_Example3"
                          )
                      ),
                      
                      uiOutput("uiLoadGraphOptionsOutput"),
                      # ), # conditionPannel
-                     prettyCheckbox("header", "Header", TRUE, status = 'danger', bigger = T),
-                     # selectInput(inputId = "dataset",
-                     #             label = "Example datasets:",
-                     #             choices = c("-" ,"GSE75748_time_course", "GSE75748_cell_type")),
+                     conditionalPanel(
+                       condition = "input.uiLoadGraphOptionsInput == 'oF'",
+                     prettyCheckbox("header", "Header", TRUE, status = 'danger', bigger = T)),
                      
-                     
+                     tags$head(
+                       tags$style(HTML('#btnanalysis{border-color:red}'))
+                     ),
                      actionButton("btnanalysis", "Analysis"),
 
                      # Horizontal line ----
@@ -139,7 +142,7 @@ body <-
                      #              selected = '-'),
                      
                      
-                     br(),
+                     # br(),
                      # Input: Select separator ----
                      
                      # prettyRadioButtons("sep", "Type of file",
@@ -152,18 +155,17 @@ body <-
                      
                      
                      # Horizontal line ----
-                     tags$hr(),
+                     # tags$hr(),
                      
                      # Input: Select number of rows to display ----
-                     prettyRadioButtons("disp", "Display",
-                                  choices = c(Head = "head",
-                                              All = "all"),
-                                  selected = "head", status = 'info', inline = T),
-                     tags$hr(),
+                     # prettyRadioButtons("disp", "Display",
+                     #              choices = c(Head = "head",
+                     #                          All = "all"),
+                     #              selected = "head", status = 'info', inline = T),
+                     # tags$hr(),
                      uiOutput("uploaded_dataset"),
                      # box(tableOutput("contents"), width=12,background ="purple"),
-                     dataTableOutput("contents"),
-                     pre(id = "console")
+                     dataTableOutput("contents")
                      
                      
     ),
@@ -179,6 +181,8 @@ body <-
             uiOutput("list_of_parameters")), 
             
     
+    tabItem(tabName = "console",
+            pre(id = "console")),
     # tabItem(tabName = "sliders_axes",
            # fixedRow(
            #  chooseSliderSkin("Square"),

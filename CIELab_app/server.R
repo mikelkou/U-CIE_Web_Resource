@@ -98,6 +98,15 @@ shinyServer(function(input, output, session) {
           # log2FC_MatrixCounts <- log2FC_MatrixCounts_ct[1:1000,1:1000]
           # log2FC_MatrixCounts_ct <- data.frame(read.delim("~/Documents/Documents – SUN1012692/GitHub/CIELAB/log2FC_MatrixCounts_ct.tsv"))
           # log2FC_MatrixCounts <- data.frame(read.delim("~/Documents/GitHub/CIELAB/log2FC_MatrixCounts_ct.tsv"))
+        },
+        oR_Example3 = {
+          dataset1 <- data.frame(read.delim("umap_dist_2.tsv"))
+          # dataset1 <- data.frame(log2FC_MatrixCounts_ct)
+          # dataset1 <- log2FC_MatrixCounts_ct[1:500,1:500]
+          # log2FC_MatrixCounts <- log2FC_MatrixCounts_ct
+          # log2FC_MatrixCounts <- log2FC_MatrixCounts_ct[1:1000,1:1000]
+          # log2FC_MatrixCounts_ct <- data.frame(read.delim("~/Documents/Documents – SUN1012692/GitHub/CIELAB/log2FC_MatrixCounts_ct.tsv"))
+          # log2FC_MatrixCounts <- data.frame(read.delim("~/Documents/GitHub/CIELAB/log2FC_MatrixCounts_ct.tsv"))
         }
       )
       enable("btnanalysis")
@@ -188,12 +197,7 @@ shinyServer(function(input, output, session) {
           stop(safeError(e))
         }
       )
-      if(input$disp == "head") {
-        datatable(df[1:10,], options = list(scrollX = TRUE))
-      }
-      else {
-        datatable(df, options = list(scrollX = TRUE))
-      }
+        datatable(df[1:10,], options = list(pageLength = 10, scrollX = TRUE))
       
     })
     
@@ -451,10 +455,27 @@ shinyServer(function(input, output, session) {
         }) # isolate
         }
         
+        if(input$uiLoadGraphOptionsInput == "oR_Example3" && !is.null(input$matrix) || input$uiLoadGraphOptionsInput == "oR_Example3" && is.null(input$matrix)){
+          # 2
+          input$btnanalysis
+          
+          isolate({
+            show_modal_spinner(spin = "circle", text = "Please wait..." )
+            withConsoleRedirect("console", {
+              df <- loadNetworkFromFile()
+              rownames(df) <- loadNetworkFromFile()[,1]
+              df <- df[,2:ncol(df)]
+              myvals$umap_dist <- df
+              myvals$NewUMAP <- df
+              
+            })
+          }) # isolate
+        }
+        
+        
       # myvals$umap_dist_stored <- myvals$umap_dist
         enable("btnanalysis")
         
-      # })
         remove_modal_spinner()
     
       
@@ -766,8 +787,12 @@ shinyServer(function(input, output, session) {
     
     
     output$table <- renderDataTable({
-      req(input$weightButton)
+      # req(input$weightButton)
       start.values <- myvals$start.values
+      if(is.null(start.values)){
+        return()
+      }
+      
       simplex_vectors <- myvals$simplex_vectors
 
       optional_values <- c()
@@ -816,12 +841,22 @@ shinyServer(function(input, output, session) {
     
     output$list_of_parameters <- renderPrint({
       input$table_rows_selected
+      
+      if(is.null(input$table_rows_selected)){
+        # stop("")
+        tryCatch({
+          stop("")
+        }, error = function(e) {
+          shiny:::reactiveStop(conditionMessage(e))
+        })
+      }
+      
       # input$table2_rows_selected
       start.values <- myvals$start.values
       simplex_vectors <- myvals$simplex_vectors
       
       s <- input$table_rows_selected
-      s2 <- input$table2_rows_selected
+      # s2 <- input$table2_rows_selected
       optional_values <- c()
       for(i in 1:nrow(simplex_vectors)){
         vector_dist <- distmat(start.values[1], simplex_vectors[i,1])
