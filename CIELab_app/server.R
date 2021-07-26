@@ -49,13 +49,13 @@ shinyServer(function(input, output, session) {
         dataset1 <- as.data.frame(read_excel(input$file1$datapath, 1, col_names = ifelse(input$header==T, T, F)))
       } 
       if(endsWith(input$file1$name, 'csv')){
-        dataset1 <- read.table(input$file1$datapath, header = input$header, sep = ",", quote = input$quote)
+        dataset1 <- read.table(input$file1$datapath, header = input$header, sep = ",")
       } 
       if(endsWith(input$file1$name, 'txt')){
-        dataset1 <- read.table(input$file1$datapath, header = input$header, sep = "\t", quote = input$quote)
+        dataset1 <- read.table(input$file1$datapath, header = input$header, sep = "\t")
       }
       if(endsWith(input$file1$name, 'tsv')){
-        dataset1 <- read.table(input$file1$datapath, header = input$header, sep = "\t", quote = input$quote)
+        dataset1 <- read.table(input$file1$datapath, header = input$header, sep = "\t")
       }
       
       if(ncol(dataset1)<3){
@@ -319,17 +319,26 @@ shinyServer(function(input, output, session) {
       }
       if(input$matrix == "3D data"){
         if(input$uiLoadGraphOptionsInput != "oR_Example1" || input$uiLoadGraphOptionsInput != "oR_Example2"){
-          # print(ncol(loadNetworkFromFile()))
           
-          if(ncol(loadNetworkFromFile())!=3){
-            showModal(modalDialog(title = "Not 3D! Please check again the dataset.", easyClose = T, fade = T))
+          df <- c()
+          for(i in 1:ncol(loadNetworkFromFile())){
+            if(is.character(loadNetworkFromFile()[,i])){
+              df <- loadNetworkFromFile()[,-i]
+              rownames(df) <- loadNetworkFromFile()[,i]
+            } 
+          }
+
+          if(is.null(df)){
+            df <- loadNetworkFromFile()
+          }
+          
+          if(ncol(df)!=3){
+            showModal(modalDialog(title = "If more than 3 numeric columns (+1 optional column with names), please check again the dataset.", easyClose = T, fade = T))
             return()
           }
-        # myvals$umap_dist <- myvals$uploaded_df
-        # myvals$NewUMAP <- myvals$uploaded_df
-        
-        myvals$umap_dist <- loadNetworkFromFile()
-        myvals$NewUMAP <- loadNetworkFromFile()
+          
+        myvals$umap_dist <- df
+        myvals$NewUMAP <- df
         print("3D")
         }
       }
@@ -467,6 +476,54 @@ shinyServer(function(input, output, session) {
     })
     
     
+    # Disable weight button
+    ReactiveValuesOfAxesWeightL <- reactiveValues(prev_bins = NULL)
+    ReactiveValuesOfAxesWeightA <- reactiveValues(prev_bins = NULL)
+    ReactiveValuesOfAxesWeightB <- reactiveValues(prev_bins = NULL)
+    # Append new value to previous values when input$bins changes 
+    observeEvent(input$weightButton, {
+      ReactiveValuesOfAxesWeightL$prev_bins <- c(1, ReactiveValuesOfAxesWeightL$prev_bins, input$weightL)
+      ReactiveValuesOfAxesWeightA$prev_bins <- c(1, ReactiveValuesOfAxesWeightA$prev_bins, input$weightA)
+      ReactiveValuesOfAxesWeightB$prev_bins <- c(1, ReactiveValuesOfAxesWeightB$prev_bins, input$weightB)
+    })
+    
+    observe({
+      if(length(ReactiveValuesOfAxesWeightL$prev_bins)==0){
+        return()
+      }
+      if(tail(ReactiveValuesOfAxesWeightL$prev_bins,1) == input$weightL
+         && tail(ReactiveValuesOfAxesWeightA$prev_bins,1) == input$weightA
+         && tail(ReactiveValuesOfAxesWeightB$prev_bins,1) == input$weightB
+      ) {
+        disable("weightButton")
+      } 
+      if(tail(ReactiveValuesOfAxesWeightL$prev_bins,1) != input$weightL
+         || tail(ReactiveValuesOfAxesWeightA$prev_bins,1) != input$weightA
+         || tail(ReactiveValuesOfAxesWeightB$prev_bins,1) != input$weightB
+         ) {
+        # print(input$weightL)
+        enable("weightButton")
+      }
+    })
+     
+    # Disable scale button
+    ReactiveValuesOfAxesScale <- reactiveValues(prev_bins = NULL)
+    observeEvent(input$scalingButton, {
+      ReactiveValuesOfAxesScale$prev_bins <- c(ReactiveValuesOfAxesScale$prev_bins, input$scaling)
+    })
+
+    observe({
+      if(length(ReactiveValuesOfAxesScale$prev_bins)==0){
+        return()
+      }
+      if(tail(ReactiveValuesOfAxesScale$prev_bins,1) == input$scaling) {
+        disable("scalingButton")
+      }
+      if(tail(ReactiveValuesOfAxesScale$prev_bins,1) != input$scaling) {
+        enable("scalingButton")
+      }
+    })
+    
     
     observe({
       # withProgress(min = 0, max = 1, {
@@ -485,10 +542,13 @@ shinyServer(function(input, output, session) {
             umap_dist <- myvals$RemoveGenesFromConvexCloud
           }
           
+          
           input$weightButton
         WL <- isolate(input$weightL)
         Wa <- isolate(input$weightA)
         Wb <- isolate(input$weightB)
+        
+        
         
         #--- Functions ---#
         Rotation <- function(ConvexCloud, RotL, Rota, Rotb){
@@ -729,13 +789,39 @@ shinyServer(function(input, output, session) {
       
       
         })
+    
+    # output$table2 <- renderDataTable({
+    #   req(input$weightButton)
+    #   start.values <- myvals$start.values
+    #   simplex_vectors <- myvals$simplex_vectors
+    # 
+    #   optional_values <- c()
+    #   for(i in 1:nrow(simplex_vectors)){
+    #     vector_dist <- distmat(start.values[1], simplex_vectors[i,1])
+    #     if(vector_dist >= 5) optional_values <- rbind(optional_values, simplex_vectors[i,])
+    #   }
+    #   
+    #   
+    #   if(length(optional_values)!=0){
+    #     vector_final_ordered <- as.data.frame(optional_values)
+    #     if(nrow(vector_final_ordered)==1){
+    #       vector_final_ordered <- as.data.frame(optional_values)
+    #     } else vector_final_ordered <- as.data.frame(optional_values[order(optional_values[,1], decreasing = T),])
+    #     
+    #     vector_final_ordered <- round(vector_final_ordered,2)
+    #     datatable(vector_final_ordered, selection = c("single"), colnames = c("Scaling factor", "Rotation L*", "Rotation a*", "Rotation b*", "Translation L*", "Translation a*", "Translation b*"))
+    #   }
+    #     })
 
+    
     output$list_of_parameters <- renderPrint({
-      req(input$table_rows_selected)
+      input$table_rows_selected
+      # input$table2_rows_selected
       start.values <- myvals$start.values
       simplex_vectors <- myvals$simplex_vectors
       
       s <- input$table_rows_selected
+      s2 <- input$table2_rows_selected
       optional_values <- c()
       for(i in 1:nrow(simplex_vectors)){
         vector_dist <- distmat(start.values[1], simplex_vectors[i,1])
@@ -747,8 +833,12 @@ shinyServer(function(input, output, session) {
         if(nrow(vector_final_ordered)==1){
           vector_final_ordered <- as.data.frame(optional_values)
         } else vector_final_ordered <- as.data.frame(optional_values[order(optional_values[,1], decreasing = T),])
-        vector_final_ordered <- round(vector_final_ordered,2)  
-        myvals$optional.start.values <- vector_final_ordered[s,]
+        vector_final_ordered <- round(vector_final_ordered,2)
+        # Table on satellites as well
+        # if(!is.null(s2)){
+        #   s <- s2
+        # }
+        myvals$optional.start.values <- vector_final_ordered[s,] 
       }
       
     })
@@ -812,6 +902,10 @@ shinyServer(function(input, output, session) {
     
     #--- Download file ---#
     DownloadFile <- cbind(rownames(umap_dist), hex(LABdata, fix = TRUE))
+    DownloadFile <- as.data.frame(cbind(DownloadFile, rawdata))
+    rownames(DownloadFile) <- NULL
+    colnames(DownloadFile) <- c("Genes", "Colors - Hex codes", "Lstar", "Astar", "Bstar")
+    
     if(!is.null(myvals$RemovedGenes)){
       DownloadFile <- rbind(DownloadFile, myvals$RemovedGenes)
     }
@@ -979,8 +1073,8 @@ shinyServer(function(input, output, session) {
           #     width = 0.5)
           # )
           marker = list(color = I(myvals$select_data_colors[,4]), opacity = 1, size = 8)
-          ,
-          width = 735, height = 720
+          # ,
+          # width = 735, height = 720
         )
         
         # fig1 <- fig1 %>% add_polygons(polygon, x = polygon[, 1], y = polygon[, 3], color=I("red"), opacity=0.2)
@@ -1023,8 +1117,8 @@ shinyServer(function(input, output, session) {
           #     width = 0.5)
           # )
           marker = list(color = I(myvals$select_data_colors[,4]), opacity = 1, size = 8)
-          ,
-          width = 735, height = 720
+          # ,
+          # width = 735, height = 720
         )
         
         # fig2 <- fig2 %>% add_polygons(polygon, x = polygon[, 1], y = polygon[, 3], color=I("red"), opacity=0.2)
@@ -1139,12 +1233,12 @@ shinyServer(function(input, output, session) {
         paste('Hex_codes-', input$file1, "-" , Sys.Date(), '.tsv', sep='')
       },
       content = function(con) {
-        write.table(myvals$DownloadFile, con, quote = F, row.names = F, col.names = F, sep = "\t")
+        write.table(myvals$DownloadFile, con, quote = F, row.names = F, col.names = T, sep = "\t")
       }
     )
     
     output$download_table <- renderDataTable({
-      datatable(myvals$DownloadFile, selection = c("none"), colnames = c("Genes", "Colors - Hex codes"))
+      datatable(myvals$DownloadFile, selection = c("none"), colnames = c("Genes", "Colors - Hex codes", "Lstar", "Astar", "Bstar"))
     })
     
     observeEvent(input$openModal, {

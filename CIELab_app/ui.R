@@ -13,55 +13,58 @@ options(shiny.maxRequestSize = 100*1024^2)
 # shinyUI(
 
 
-
 sidebar <- dashboardSidebar(
     # sidebarMenu(id="tabs", sidebarMenuOutput("menu"))
     sidebarMenu(id="tabs",
-                menuItem("Upload Files", tabName = "upload", icon = icon("dashboard")),
+                menuItem("Upload Files", tabName = "upload", icon = icon("file-upload", lib = "font-awesome")),
+                menuItem("3D View", tabName = "umap", icon = icon("bar-chart-o")),
+                menuItem("2D projections", icon = icon("bar-chart-o"), tabName = "satellites"),
+                         # badgeLabel = "new", badgeColor = "green"),
+                conditionalPanel(
+                  condition = "input.btnanalysis != 0",
+                hr(),
+                # convertMenuItem(
+                # menuItem("Adjust the colors", tabName = "sliders_axes", icon = icon("bar-chart-o"),
+                chooseSliderSkin("Square"),
+                # chooseSliderSkin("Flat", color = "#112446"),
+                # setSliderColor(c("DeepPink ", "#FF4500", "", "Teal"), c(1)),
+                sliderInput("weightL",
+                            "L* weight (Brightness):",
+                            min = 1,
+                            max = 3,
+                            value = 1,
+                            step = 0.1,
+                            width = '500px'),
+                sliderInput("weightA",
+                            "a* weight (Red - Green):",
+                            min = 1,
+                            max = 3,
+                            value = 1,
+                            step = 0.1,
+                            width = '500px'),
+                sliderInput("weightB",
+                            "b* weight (Yellow - Blue):",
+                            min = 1,
+                            max = 3,
+                            value = 1,
+                            step = 0.1,
+                            width = '500px'),
+                actionButton("weightButton", "Re-optimize", width = '100px'),
+                br(),
+                sliderInput("scaling",
+                            "Scaling factor:",
+                            min = 1,
+                            max = 2,
+                            value = 1,
+                            step = 0.1,
+                            width = '500px'),
                 
-                convertMenuItem(menuItem("UMAP", tabName = "umap",icon = icon("bar-chart-o"),selected=T,
-                                         chooseSliderSkin("Square"),
-                                         # chooseSliderSkin("Flat", color = "#112446"),
-                                         # setSliderColor(c("DeepPink ", "#FF4500", "", "Teal"), c(1)),
-                                         sliderInput("weightL",
-                                                     "L* weight (Brightness):",
-                                                     min = 1,
-                                                     max = 3,
-                                                     value = 1,
-                                                     step = 0.1, 
-                                                     width = '500px'),
-                                         sliderInput("weightA",
-                                                     "a* weight (Red - Green):",
-                                                     min = 1,
-                                                     max = 3,
-                                                     value = 1,
-                                                     step = 0.1, 
-                                                     width = '500px'),
-                                         sliderInput("weightB",
-                                                     "b* weight (Yellow - Blue):",
-                                                     min = 1,
-                                                     max = 3,
-                                                     value = 1,
-                                                     step = 0.1, 
-                                                     width = '500px'),
-                                         sliderInput("scaling",
-                                                     "Scaling factor multiplier:",
-                                                     min = 1,
-                                                     max = 2,
-                                                     value = 1,
-                                                     step = 0.1, 
-                                                     width = '500px'),
-                                         actionButton("weightButton", "Weight", width = '100px'),
-                                         actionButton("scalingButton", "Scale", width = '100px'))
-                                ,"umap"),
-                
-                
-                # convertMenuItem(menuItem("UMAP", tabName = "umap", icon = icon("dashboard")),
-                # menuItem("Adjust the colors", tabName = "sliders_axes"), "umap"),
-                
-                menuItem("Satellites", icon = icon("th"), tabName = "satellites",
-                         badgeLabel = "new", badgeColor = "green"),
-                menuItem("Download", icon = icon("th"), tabName = "Download")
+                actionButton("scalingButton", "Re-scale", width = '100px'),
+                # ),
+                # ,"umap"),
+                hr()
+                ), #conditionalPanel
+                menuItem("Download", icon = icon("file-export", lib = "font-awesome"), tabName = "Download")
     )
 )
 
@@ -88,16 +91,33 @@ body <-
                      #                      ".csv")),
 
                      br(),
+                     
+                     conditionalPanel(
+                       condition = "input.uiLoadGraphOptionsInput == 'oF'",
+                       prettyRadioButtons("matrix", "1: Type of Data",
+                                          choices = c('Single-cells' = 'Single-cells',
+                                                      'High Dimensional' = 'High Dimensional',
+                                                      'Distance matrix'=  'Distance matrix',
+                                                      '3D data' = '3D data'), 
+                                          selected = character(0), status = 'warning', inline = T),
+                     ),
                      br(),
+                     
+                     # After ISMB
+                     # conditionalPanel(
+                     #   condition = "input.matrix != null",
+                       
                      selectInput("uiLoadGraphOptionsInput",
-                       "1: Choose File(s)",
+                       "2: Choose File(s)",
                        c(
                          "File upload" = "oF",
                          "Small example: GSE75748_time_course" = "oR_Example1",
                          "Big example: GSE75748_cell_type" = "oR_Example2"
                          )
                      ),
+                     
                      uiOutput("uiLoadGraphOptionsOutput"),
+                     # ), # conditionPannel
                      prettyCheckbox("header", "Header", TRUE, status = 'danger', bigger = T),
                      # selectInput(inputId = "dataset",
                      #             label = "Example datasets:",
@@ -118,15 +138,7 @@ body <-
                      #                          '3D data' = '3D data'),
                      #              selected = '-'),
                      
-                     conditionalPanel(
-                       condition = "input.uiLoadGraphOptionsInput == 'oF'",
-                     prettyRadioButtons("matrix", "Type of Matrix",
-                                  choices = c('Single-cells' = 'Single-cells',
-                                              'High Dimensional' = 'High Dimensional',
-                                              'Distance matrix'=  'Distance matrix',
-                                              '3D data' = '3D data'), 
-                                  selected = character(0), status = 'warning', inline = T)
-                     ),
+                     
                      br(),
                      # Input: Select separator ----
                      
@@ -137,12 +149,7 @@ body <-
                      #                          "Excel" = "xlsx"),
                      #              selected = "\t"),
                      
-                     # Input: Select quotes ----
-                     prettyRadioButtons("quote", "Quote",
-                                  choices = c(None = "",
-                                              "Double Quote" = '"',
-                                              "Single Quote" = "'"),
-                                  selected = '', status = 'info', inline = T),
+                     
                      
                      # Horizontal line ----
                      tags$hr(),
@@ -218,13 +225,16 @@ body <-
             # h2("Satellites"),
             br(),
             br(),
-            column(6,plotlyOutput("satellite"),
+            column(8,plotlyOutput("satellite"),
                    hidden(actionButton("remove_genes", "Remove Genes and Re-color!")), # Hidden up to ISMB
                    hidden(actionButton("reset_genes", "Reset")), # Hidden up to ISMB
                    # uiOutput("reset")
                    ), 
             
-            column(4,offset=1,dataTableOutput("legend")),
+            column(4,dataTableOutput("legend"))
+            # ,
+            # column(4,dataTableOutput("table2")),
+
 
     ),
     tabItem(tabName = "Download",
