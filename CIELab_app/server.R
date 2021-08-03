@@ -45,38 +45,97 @@ shinyServer(function(input, output, session) {
     )
     
     read_data <- function(datapath, type = c("txt"), header = T, sep = "\t", quote = "\"") ({
-      if(endsWith(input$file1$name, 'xlsx')){
-        dataset1 <- as.data.frame(read_excel(input$file1$datapath, 1, col_names = ifelse(input$header==T, T, F)))
-      } 
-      if(endsWith(input$file1$name, 'csv')){
-        dataset1 <- read.table(input$file1$datapath, header = input$header, sep = ",")
-      } 
-      if(endsWith(input$file1$name, 'txt')){
-        dataset1 <- read.table(input$file1$datapath, header = input$header, sep = "\t")
-      }
-      if(endsWith(input$file1$name, 'tsv')){
-        dataset1 <- read.table(input$file1$datapath, header = input$header, sep = "\t")
+      if(input$matrix == 'Single-cells'){
+        if(endsWith(input$file1$name, 'xlsx')){
+          dataset1 <- as.data.frame(read_excel(input$file1$datapath, 1, col_names = ifelse(input$header1==T, T, F)))
+        } 
+        if(endsWith(input$file1$name, 'csv')){
+          dataset1 <- read.table(input$file1$datapath, header = input$header1, sep = ",")
+        } 
+        if(endsWith(input$file1$name, 'txt')){
+          dataset1 <- read.table(input$file1$datapath, header = input$header1, sep = "\t")
+        }
+        if(endsWith(input$file1$name, 'tsv')){
+          dataset1 <- read.table(input$file1$datapath, header = input$header1, sep = "\t")
+        }
+        return(dataset1)
+        
       }
       
-      if(ncol(dataset1)<3){
+      if(input$matrix == 'High Dimensional'){
+        if(endsWith(input$file2$name, 'xlsx')){
+          dataset2 <- as.data.frame(read_excel(input$file2$datapath, 1, col_names = ifelse(input$header2==T, T, F)))
+        } 
+        if(endsWith(input$file2$name, 'csv')){
+          dataset2 <- read.table(input$file2$datapath, header = input$header2, sep = ",")
+        } 
+        if(endsWith(input$file2$name, 'txt')){
+          dataset2 <- read.table(input$file2$datapath, header = input$header2, sep = "\t")
+        }
+        if(endsWith(input$file2$name, 'tsv')){
+          dataset2 <- read.table(input$file2$datapath, header = input$header2, sep = "\t")
+        }
+        return(dataset2)
+        
+      }
+      
+      if(input$matrix == 'Distance matrix'){
+        if(endsWith(input$file3$name, 'xlsx')){
+          dataset3 <- as.data.frame(read_excel(input$file3$datapath, 1, col_names = ifelse(input$header3==T, T, F)))
+        } 
+        if(endsWith(input$file3$name, 'csv')){
+          dataset3 <- read.table(input$file3$datapath, header = input$header3, sep = ",")
+        } 
+        if(endsWith(input$file3$name, 'txt')){
+          dataset3 <- read.table(input$file3$datapath, header = input$header3, sep = "\t")
+        }
+        if(endsWith(input$file3$name, 'tsv')){
+          dataset3 <- read.table(input$file3$datapath, header = input$header3, sep = "\t")
+        }
+        return(dataset3)
+        
+      }
+      
+      if(input$matrix == '3D data'){
+        if(endsWith(input$file4$name, 'xlsx')){
+          dataset4 <- as.data.frame(read_excel(input$file4$datapath, 1, col_names = ifelse(input$header4==T, T, F)))
+        } 
+        if(endsWith(input$file4$name, 'csv')){
+          dataset4 <- read.table(input$file4$datapath, header = input$header4, sep = ",")
+        } 
+        if(endsWith(input$file4$name, 'txt')){
+          dataset4 <- read.table(input$file4$datapath, header = input$header4, sep = "\t")
+        }
+        if(endsWith(input$file4$name, 'tsv')){
+          dataset4 <- read.table(input$file4$datapath, header = input$header4, sep = "\t")
+        }
+        
+      if(ncol(dataset4)<3){
         showModal(modalDialog(title = "Not even 3D? Please check again the dataset.", easyClose = T, fade = T))
-        dataset1 <- NULL
+        dataset4 <- NULL
+      }
+        return(dataset4)
+        
       }
       
-      return(dataset1)
+      # print(dataset)
+      # return(dataset)
     })
     
     loadNetworkFromFile <- function() {
       dataset1 <- NULL
+      dataset2 <- NULL
+      dataset3 <- NULL
+      dataset4 <- NULL
       set.seed(123)
       
       switch(
-        input$uiLoadGraphOptionsInput,
+        input$LoadFileSingleCellsInput,
         oF = {
           if (!is.null(input$file1)) {
             if(input$file1$type == "application/pdf"){
               # "This is PDF! Please upload tsv/csv files."
-              showModal(modalDialog(title = "This is PDF! Please upload tsv/csv files.", easyClose = T, fade = T))
+              showModal(modalDialog(title = "This is PDF! Please upload tsv/txt/csv/xlsx files.", easyClose = T, fade = T))
             } else {
             dataset1 <- read_data(input$file1$datapath)
             }
@@ -98,9 +157,68 @@ shinyServer(function(input, output, session) {
           # log2FC_MatrixCounts <- log2FC_MatrixCounts_ct[1:1000,1:1000]
           # log2FC_MatrixCounts_ct <- data.frame(read.delim("~/Documents/Documents – SUN1012692/GitHub/CIELAB/log2FC_MatrixCounts_ct.tsv"))
           # log2FC_MatrixCounts <- data.frame(read.delim("~/Documents/GitHub/CIELAB/log2FC_MatrixCounts_ct.tsv"))
+        }
+      )
+      
+      switch(
+        input$LoadFileHighDInput,
+        oF = {
+          if (!is.null(input$file2)) {
+            if(input$file2$type == "application/pdf"){
+              # "This is PDF! Please upload tsv/csv files."
+              showModal(modalDialog(title = "This is PDF! Please upload tsv/txt/csv/xlsx files.", easyClose = T, fade = T))
+            } else {
+              dataset2 <- read_data(input$file2$datapath)
+            }
+          }
+        }
+        # ,
+        # oR_Example1 = {
+        #   dataset2 <- data.frame(read.delim("log2FC_MatrixCounts_tc_cropped.tsv"))
+          # log2FC_MatrixCounts <- log2FC_MatrixCounts_tc[1:500,1:500]
+          # log2FC_MatrixCounts <- log2FC_MatrixCounts_tc
+          # log2FC_MatrixCounts_tc <- data.frame(read.delim("~/Documents/Documents – SUN1012692/GitHub/CIELAB/log2FC_MatrixCounts_tc.tsv"))
+          # log2FC_MatrixCounts <- data.frame(read.delim("~/Documents/GitHub/CIELAB/log2FC_MatrixCounts_tc.tsv"))
+          # print(log2FC_MatrixCounts[1:10,1:10])
+        # }
+      )
+      
+      switch(
+        input$LoadFileDistInput,
+        oF = {
+          if (!is.null(input$file3)) {
+            if(input$file3$type == "application/pdf"){
+              # "This is PDF! Please upload tsv/csv files."
+              showModal(modalDialog(title = "This is PDF! Please upload tsv/txt/csv/xlsx files.", easyClose = T, fade = T))
+            } else {
+            dataset3 <- read_data(input$file3$datapath)
+            }
+          }
+        },
+        oR_Example_distance = {
+          dataset3 <- data.frame(read.delim("log2FC_MatrixCounts_tc_cropped.tsv"))
+          # log2FC_MatrixCounts <- log2FC_MatrixCounts_tc[1:500,1:500]
+          # log2FC_MatrixCounts <- log2FC_MatrixCounts_tc
+          # log2FC_MatrixCounts_tc <- data.frame(read.delim("~/Documents/Documents – SUN1012692/GitHub/CIELAB/log2FC_MatrixCounts_tc.tsv"))
+          # log2FC_MatrixCounts <- data.frame(read.delim("~/Documents/GitHub/CIELAB/log2FC_MatrixCounts_tc.tsv"))
+          # print(log2FC_MatrixCounts[1:10,1:10])
+        }
+      )
+      
+      switch(
+        input$LoadFile3DInput,
+        oF = {
+          if (!is.null(input$file4)) {
+            if(input$file4$type == "application/pdf"){
+              # "This is PDF! Please upload tsv/csv files."
+              showModal(modalDialog(title = "This is PDF! Please upload tsv/txt/csv/xlsx files.", easyClose = T, fade = T))
+            } else {
+            dataset4 <- read_data(input$file4$datapath)
+            }
+          }
         },
         oR_Example3 = {
-          dataset1 <- data.frame(read.delim("umap_dist_2.tsv"))
+          dataset4 <- data.frame(read.delim("umap_dist_2.tsv"))
           # dataset1 <- data.frame(log2FC_MatrixCounts_ct)
           # dataset1 <- log2FC_MatrixCounts_ct[1:500,1:500]
           # log2FC_MatrixCounts <- log2FC_MatrixCounts_ct
@@ -109,18 +227,30 @@ shinyServer(function(input, output, session) {
           # log2FC_MatrixCounts <- data.frame(read.delim("~/Documents/GitHub/CIELAB/log2FC_MatrixCounts_ct.tsv"))
         }
       )
+      
       enable("btnanalysis")
-      return(dataset1)
+      
+      # print(dataset1)
+      # print(dataset2)
+      # print(dataset3)
+      # print(dataset4)
+      
+      if(input$matrix == 'Single-cells')
+        return(dataset1)
+      if(input$matrix == 'High Dimensional')
+        return(dataset2)
+      if(input$matrix == 'Distance matrix')
+        return(dataset3)
+      if(input$matrix == '3D data')
+        return(dataset4)
+      
+      
+      # return(dataset1)
     }
     
     
-    output$uiLoadGraphOptionsOutput <- renderUI({
-      if (is.null(input$uiLoadGraphOptionsInput))
-        return()
-      
-      # Depending on input$input_type, we'll generate a different UI
-      # component and send it to the client.
-      if (input$uiLoadGraphOptionsInput == "oF") {
+    output$LoadFileSingleCellsOutput <- renderUI({
+      if (input$LoadFileSingleCellsInput == "oF" ){
         wellPanel(fileInput(
           "file1",
           "Choose file to upload",
@@ -131,14 +261,59 @@ shinyServer(function(input, output, session) {
             ".xlsx"
           ))
         )
-      } else {}
-      
+      } else{}
+    })
+    
+    output$LoadFileHighDOutput <- renderUI({  
+      if (input$LoadFileHighDInput == "oF" ){
+        wellPanel(fileInput(
+          "file2",
+          "Choose file to upload",
+          accept = c(
+            "text/csv",
+            "text/comma-separated-values,text/plain",
+            ".csv",
+            ".xlsx"
+          ))
+        )
+      } else{}
+    })
+    
+    output$LoadFileDistOutput <- renderUI({
+      if (input$LoadFileDistInput == "oF" ){
+        wellPanel(fileInput(
+          "file3",
+          "Choose file to upload",
+          accept = c(
+            "text/csv",
+            "text/comma-separated-values,text/plain",
+            ".csv",
+            ".xlsx"
+          ))
+        )
+      } else{}
+    })
+    
+    output$LoadFile3DOutput <- renderUI({
+      if (input$LoadFile3DInput == "oF" ){
+        wellPanel(fileInput(
+          "file4",
+          "Choose file to upload",
+          accept = c(
+            "text/csv",
+            "text/comma-separated-values,text/plain",
+            ".csv",
+            ".xlsx"
+          ))
+        )
+      } else{}
     })
     
     ###### Upload #######
     doAddNetwork <- observeEvent(input$btnanalysis, {
-      # isolate({
+      req(input$matrix)
       myvals$uploaded_df <- loadNetworkFromFile()
+
       # print(head(myvals$uploaded_df))
       # if (!is.null(dataset)) {
       #     nid <- UUIDgenerate(T)      #time-base UUID is generated
@@ -187,6 +362,8 @@ shinyServer(function(input, output, session) {
     
     
     output$contents <- renderDataTable({
+      req(input$matrix)
+      
       uploaded_df <- loadNetworkFromFile()
       tryCatch(
         {
@@ -214,7 +391,7 @@ shinyServer(function(input, output, session) {
         return()
       }
       
-        if(input$uiLoadGraphOptionsInput=="oF") {
+        # if(input$uiLoadGraphOptionsInput=="oF") {
           req(input$matrix)
           isolate({
             show_modal_spinner(spin = "circle", text = "Please wait..." )
@@ -223,8 +400,9 @@ shinyServer(function(input, output, session) {
         }
           
         if(input$matrix == 'Single-cells'){
-          print("sc")
-          if(input$uiLoadGraphOptionsInput != "oR_Example1" || input$uiLoadGraphOptionsInput != "oR_Example2"){
+          # print("sc")
+          if(input$LoadFileSingleCellsInput != "oR_Example1"){
+            # print("should not here")
           # matrix_counts <- myvals$uploaded_df
           matrix_counts <- loadNetworkFromFile()
           # print(is.character(matrix_counts[,1]))
@@ -286,10 +464,77 @@ shinyServer(function(input, output, session) {
          
          print("Single cells done!")
           } 
-        }
+          
+          if(input$LoadFileSingleCellsInput == "oR_Example1" || input$LoadFileSingleCellsInput == "oR_Example2"){
+            input$btnanalysis
+            
+            isolate({
+              show_modal_spinner(spin = "circle", text = "Please wait..." )
+              
+              withConsoleRedirect("console", {
+                
+                #     rownames(matrix_counts) <- matrix_counts[,1]
+                #     matrix_counts <- matrix_counts[,2:ncol(matrix_counts)]
+                #     matrix_counts <- data.matrix(matrix_counts) # must be a matrix object!
+                #
+                #     TransposedMatrixCounts <- t(matrix_counts)
+                #
+                #     cnt <- 0
+                #     FC_MatrixCounts <- c()
+                #     for(i in 1:ncol(TransposedMatrixCounts)){
+                #         mean_col <- mean(TransposedMatrixCounts[,i])
+                #         FC <-  (TransposedMatrixCounts[,i]+1)/(mean_col+1)
+                #         FC_MatrixCounts <- cbind(FC_MatrixCounts, FC)
+                #
+                #         cnt <- cnt + 1
+                #         if(cnt %% 1000 == 0){
+                #             print(cnt)
+                #     }
+                # }
+                # colnames(FC_MatrixCounts) <- rownames(matrix_counts)
+                # log2FC_MatrixCounts <- log2(FC_MatrixCounts)
+                
+                # 1
+                # log2FC_MatrixCounts <- loadNetworkFromFile()
+                log2FC_MatrixCounts <- loadNetworkFromFile()
+                
+                # print("1")
+                SDMoreThanOnelog2FC_MatrixCounts <- c()
+                for(i in 1:ncol(log2FC_MatrixCounts)){
+                  std <- sd(log2FC_MatrixCounts[,i])
+                  SDMoreThanOnelog2FC_MatrixCounts <- cbind(SDMoreThanOnelog2FC_MatrixCounts, std)
+                }
+                colnames(SDMoreThanOnelog2FC_MatrixCounts) <- colnames(log2FC_MatrixCounts)
+                
+                SDMoreThanOnelog2FC_MatrixCounts <- select(as.data.frame(log2FC_MatrixCounts),
+                                                           -c(names(which(SDMoreThanOnelog2FC_MatrixCounts[1,]<1))))
+                
+                # print(SDMoreThanOnelog2FC_MatrixCounts)
+                data <- CreateSeuratObject(counts = SDMoreThanOnelog2FC_MatrixCounts)
+                
+                all.genes <- rownames(data)
+                
+                data <- ScaleData(data, do.scale =  F, do.center = F, features = all.genes)
+                
+                data <- FindVariableFeatures(object = data, selection.method = 'mvp') #mvp because of error in log
+                
+                data <- RunPCA(data, npcs = 50, features = VariableFeatures(object = data))
+                print(data)
+                data <- FindNeighbors(data, dims = 1:15)
+                data <- FindClusters(data, resolution = 0.5, algorithm= 1) # color in Seurat umap output
+                data <- RunUMAP(data, dims = 1:50, n.components = 3L)
+                
+                data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
+                # data_umap_coord <- data[["umap"]]@cell.embeddings
+              }) # console
+              umap_dist <- data_umap_coord
+              myvals$umap_dist <- umap_dist
+            }) # isolate
+          }
+        } # if input$matrix == 'Single-cells'
       
       if(input$matrix == 'High Dimensional'){
-        if(input$uiLoadGraphOptionsInput != "oR_Example1" || input$uiLoadGraphOptionsInput != "oR_Example2"){
+        # if(input$uiLoadGraphOptionsInput != "oR_Example1" || input$uiLoadGraphOptionsInput != "oR_Example2"){
         # data <- CreateSeuratObject(counts = myvals$uploaded_df)
         # all.genes <- rownames(data)
         # data <- ScaleData(data, do.scale =  F, do.center = F, features = all.genes)
@@ -306,10 +551,11 @@ shinyServer(function(input, output, session) {
         
         umap_dist <- data_umap_coord
         myvals$umap_dist <- umap_dist
-        }
+        # }
       }
+            
       if(input$matrix == 'Distance matrix'){
-        if(input$uiLoadGraphOptionsInput != "oR_Example1" || input$uiLoadGraphOptionsInput != "oR_Example2"){
+        # if(input$uiLoadGraphOptionsInput != "oR_Example1" || input$uiLoadGraphOptionsInput != "oR_Example2"){
           
         withConsoleRedirect("console", {
         data <- as.matrix(dist(loadNetworkFromFile()))
@@ -319,10 +565,10 @@ shinyServer(function(input, output, session) {
         umap_dist <- data_umap_coord
         myvals$umap_dist <- umap_dist
         print("Distance")
-        }
+        # }
       }
       if(input$matrix == "3D data"){
-        if(input$uiLoadGraphOptionsInput != "oR_Example1" || input$uiLoadGraphOptionsInput != "oR_Example2"){
+        if(input$LoadFile3DInput != "oR_Example3"){
           
           df <- c()
           for(i in 1:ncol(loadNetworkFromFile())){
@@ -347,115 +593,114 @@ shinyServer(function(input, output, session) {
         }
       }
           }) # isolate
-      } # of
+      # } # of
       
-      if(input$uiLoadGraphOptionsInput == "oR_Example1" & !is.null(input$matrix) 
-         | input$uiLoadGraphOptionsInput == "oR_Example1" & is.null(input$matrix)){
-        input$btnanalysis
+      # if(input$LoadFileSingleCellsInput == "oR_Example1" | input$LoadFileSingleCellsInput == "oR_Example2"){
+      #   input$btnanalysis
+      #   
+      #   isolate({
+      #     show_modal_spinner(spin = "circle", text = "Please wait..." )
+      #   
+      #     withConsoleRedirect("console", {
+      #       
+      #       #     rownames(matrix_counts) <- matrix_counts[,1]
+      #       #     matrix_counts <- matrix_counts[,2:ncol(matrix_counts)]
+      #       #     matrix_counts <- data.matrix(matrix_counts) # must be a matrix object!
+      #       #
+      #       #     TransposedMatrixCounts <- t(matrix_counts)
+      #       #
+      #       #     cnt <- 0
+      #       #     FC_MatrixCounts <- c()
+      #       #     for(i in 1:ncol(TransposedMatrixCounts)){
+      #       #         mean_col <- mean(TransposedMatrixCounts[,i])
+      #       #         FC <-  (TransposedMatrixCounts[,i]+1)/(mean_col+1)
+      #       #         FC_MatrixCounts <- cbind(FC_MatrixCounts, FC)
+      #       #
+      #       #         cnt <- cnt + 1
+      #       #         if(cnt %% 1000 == 0){
+      #       #             print(cnt)
+      #       #     }
+      #       # }
+      #       # colnames(FC_MatrixCounts) <- rownames(matrix_counts)
+      #       # log2FC_MatrixCounts <- log2(FC_MatrixCounts)
+      # 
+      #       # 1
+      #       log2FC_MatrixCounts <- loadNetworkFromFile()
+      #       print("1")
+      #       SDMoreThanOnelog2FC_MatrixCounts <- c()
+      #       for(i in 1:ncol(log2FC_MatrixCounts)){
+      #           std <- sd(log2FC_MatrixCounts[,i])
+      #           SDMoreThanOnelog2FC_MatrixCounts <- cbind(SDMoreThanOnelog2FC_MatrixCounts, std)
+      #       }
+      #       colnames(SDMoreThanOnelog2FC_MatrixCounts) <- colnames(log2FC_MatrixCounts)
+      # 
+      #       SDMoreThanOnelog2FC_MatrixCounts <- select(as.data.frame(log2FC_MatrixCounts),
+      #                                                  -c(names(which(SDMoreThanOnelog2FC_MatrixCounts[1,]<1))))
+      #       # print(SDMoreThanOnelog2FC_MatrixCounts)
+      #       data <- CreateSeuratObject(counts = SDMoreThanOnelog2FC_MatrixCounts)
+      #       
+      #       all.genes <- rownames(data)
+      #       data <- ScaleData(data, do.scale =  F, do.center = F, features = all.genes)
+      #       
+      #       data <- FindVariableFeatures(object = data, selection.method = 'mvp') #mvp because of error in log
+      #       
+      #       data <- RunPCA(data, npcs = 50, features = VariableFeatures(object = data))
+      #       data <- FindNeighbors(data, dims = 1:15)
+      #       data <- FindClusters(data, resolution = 0.5, algorithm= 1) # color in Seurat umap output
+      #       
+      #       data <- RunUMAP(data, dims = 1:50, n.components = 3L)
+      # 
+      #       data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
+      #     })
+      #       umap_dist <- data_umap_coord
+      #       myvals$umap_dist <- umap_dist
+      #       # print(myvals$umap_dist)
+      # }) # isolate
+      #   }
         
-        isolate({
-          show_modal_spinner(spin = "circle", text = "Please wait..." )
+          # Exaple 2 starts here (maybe not useful)
+        # if(input$LoadFileSingleCellsInput == "oR_Example2" && !is.null(input$matrix) || input$LoadFileSingleCellsInput == "oR_Example1" && is.null(input$matrix)){
+        #     # 2
+        #   input$btnanalysis
+        #  
+        #    isolate({
+        #     show_modal_spinner(spin = "circle", text = "Please wait..." )
+        #     
+        #   withConsoleRedirect("console", {
+        #   log2FC_MatrixCounts <- loadNetworkFromFile()
+        #   # log2FC_MatrixCounts <- log2FC_MatrixCounts_ct
+        #     print("2")
+        #     SDMoreThanOnelog2FC_MatrixCounts <- c()
+        #     for(i in 1:ncol(log2FC_MatrixCounts)){
+        #         std <- sd(log2FC_MatrixCounts[,i])
+        #         SDMoreThanOnelog2FC_MatrixCounts <- cbind(SDMoreThanOnelog2FC_MatrixCounts, std)
+        #     }
+        #     colnames(SDMoreThanOnelog2FC_MatrixCounts) <- colnames(log2FC_MatrixCounts)
+        #     
+        #     
+        #     SDMoreThanOnelog2FC_MatrixCounts <- select(as.data.frame(log2FC_MatrixCounts),
+        #                                                -c(names(which(SDMoreThanOnelog2FC_MatrixCounts[1,]<1))))
+        #     
+        #     data <- CreateSeuratObject(counts = SDMoreThanOnelog2FC_MatrixCounts)
+        #     
+        #     all.genes <- rownames(data)
+        #     data <- ScaleData(data, do.scale =  F, do.center = F, features = all.genes)
+        #     data <- FindVariableFeatures(object = data, selection.method = 'mvp') #mvp because of error in log
+        #     
+        #     data <- RunPCA(data, npcs = 50, features = VariableFeatures(object = data))
+        #     data <- FindNeighbors(data, dims = 1:15)
+        #     data <- FindClusters(data, resolution = 0.5, algorithm= 1) # color in Seurat umap output
+        #     
+        #     data <- RunUMAP(data, dims = 1:50, n.components = 3L)
+        #     
+        #     data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
+        #   })
+        #     umap_dist <- data_umap_coord
+        #     myvals$umap_dist <- umap_dist
+        # }) # isolate
+        # }
         
-          withConsoleRedirect("console", {
-            
-            #     rownames(matrix_counts) <- matrix_counts[,1]
-            #     matrix_counts <- matrix_counts[,2:ncol(matrix_counts)]
-            #     matrix_counts <- data.matrix(matrix_counts) # must be a matrix object!
-            #
-            #     TransposedMatrixCounts <- t(matrix_counts)
-            #
-            #     cnt <- 0
-            #     FC_MatrixCounts <- c()
-            #     for(i in 1:ncol(TransposedMatrixCounts)){
-            #         mean_col <- mean(TransposedMatrixCounts[,i])
-            #         FC <-  (TransposedMatrixCounts[,i]+1)/(mean_col+1)
-            #         FC_MatrixCounts <- cbind(FC_MatrixCounts, FC)
-            #
-            #         cnt <- cnt + 1
-            #         if(cnt %% 1000 == 0){
-            #             print(cnt)
-            #     }
-            # }
-            # colnames(FC_MatrixCounts) <- rownames(matrix_counts)
-            # log2FC_MatrixCounts <- log2(FC_MatrixCounts)
-
-            # 1
-            log2FC_MatrixCounts <- loadNetworkFromFile()
-            print("1")
-            SDMoreThanOnelog2FC_MatrixCounts <- c()
-            for(i in 1:ncol(log2FC_MatrixCounts)){
-                std <- sd(log2FC_MatrixCounts[,i])
-                SDMoreThanOnelog2FC_MatrixCounts <- cbind(SDMoreThanOnelog2FC_MatrixCounts, std)
-            }
-            colnames(SDMoreThanOnelog2FC_MatrixCounts) <- colnames(log2FC_MatrixCounts)
-
-            SDMoreThanOnelog2FC_MatrixCounts <- select(as.data.frame(log2FC_MatrixCounts),
-                                                       -c(names(which(SDMoreThanOnelog2FC_MatrixCounts[1,]<1))))
-            # print(SDMoreThanOnelog2FC_MatrixCounts)
-            data <- CreateSeuratObject(counts = SDMoreThanOnelog2FC_MatrixCounts)
-            
-            all.genes <- rownames(data)
-            data <- ScaleData(data, do.scale =  F, do.center = F, features = all.genes)
-            
-            data <- FindVariableFeatures(object = data, selection.method = 'mvp') #mvp because of error in log
-            
-            data <- RunPCA(data, npcs = 50, features = VariableFeatures(object = data))
-            data <- FindNeighbors(data, dims = 1:15)
-            data <- FindClusters(data, resolution = 0.5, algorithm= 1) # color in Seurat umap output
-            
-            data <- RunUMAP(data, dims = 1:50, n.components = 3L)
-
-            data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
-          })
-            umap_dist <- data_umap_coord
-            myvals$umap_dist <- umap_dist
-            # print(myvals$umap_dist)
-      }) # isolate
-        }
-        
-        if(input$uiLoadGraphOptionsInput == "oR_Example2" && !is.null(input$matrix) || input$uiLoadGraphOptionsInput == "oR_Example1" && is.null(input$matrix)){
-            # 2
-          input$btnanalysis
-         
-           isolate({
-            show_modal_spinner(spin = "circle", text = "Please wait..." )
-            
-          withConsoleRedirect("console", {
-          log2FC_MatrixCounts <- loadNetworkFromFile()
-          # log2FC_MatrixCounts <- log2FC_MatrixCounts_ct
-            print("2")
-            SDMoreThanOnelog2FC_MatrixCounts <- c()
-            for(i in 1:ncol(log2FC_MatrixCounts)){
-                std <- sd(log2FC_MatrixCounts[,i])
-                SDMoreThanOnelog2FC_MatrixCounts <- cbind(SDMoreThanOnelog2FC_MatrixCounts, std)
-            }
-            colnames(SDMoreThanOnelog2FC_MatrixCounts) <- colnames(log2FC_MatrixCounts)
-            
-            
-            SDMoreThanOnelog2FC_MatrixCounts <- select(as.data.frame(log2FC_MatrixCounts),
-                                                       -c(names(which(SDMoreThanOnelog2FC_MatrixCounts[1,]<1))))
-            
-            data <- CreateSeuratObject(counts = SDMoreThanOnelog2FC_MatrixCounts)
-            
-            all.genes <- rownames(data)
-            data <- ScaleData(data, do.scale =  F, do.center = F, features = all.genes)
-            data <- FindVariableFeatures(object = data, selection.method = 'mvp') #mvp because of error in log
-            
-            data <- RunPCA(data, npcs = 50, features = VariableFeatures(object = data))
-            data <- FindNeighbors(data, dims = 1:15)
-            data <- FindClusters(data, resolution = 0.5, algorithm= 1) # color in Seurat umap output
-            
-            data <- RunUMAP(data, dims = 1:50, n.components = 3L)
-            
-            data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
-          })
-            umap_dist <- data_umap_coord
-            
-            myvals$umap_dist <- umap_dist
-        }) # isolate
-        }
-        
-        if(input$uiLoadGraphOptionsInput == "oR_Example3" && !is.null(input$matrix) || input$uiLoadGraphOptionsInput == "oR_Example3" && is.null(input$matrix)){
+        if(input$LoadFile3DInput == "oR_Example3"){
           # 2
           input$btnanalysis
           
@@ -467,7 +712,7 @@ shinyServer(function(input, output, session) {
               df <- df[,2:ncol(df)]
               myvals$umap_dist <- df
               myvals$NewUMAP <- df
-              
+              print("oR_Example3")
             })
           }) # isolate
         }
@@ -475,7 +720,6 @@ shinyServer(function(input, output, session) {
         
       # myvals$umap_dist_stored <- myvals$umap_dist
         enable("btnanalysis")
-        
         remove_modal_spinner()
     
       
@@ -569,8 +813,7 @@ shinyServer(function(input, output, session) {
         Wa <- isolate(input$weightA)
         Wb <- isolate(input$weightB)
         
-        
-        
+
         #--- Functions ---#
         Rotation <- function(ConvexCloud, RotL, Rota, Rotb){
             ConvexCloud <- rotate3d(obj = ConvexCloud, angle = RotL, x = 1, y = 0, z = 0)
@@ -775,7 +1018,7 @@ shinyServer(function(input, output, session) {
         # print(simplex_vectors)
         myvals$start.values <- simplex_vectors[which(simplex_vectors[,1] == max(simplex_vectors[,1]))[1], ]
         myvals$simplex_vectors <- simplex_vectors
-
+        
         # end_time <- Sys.time()
         # print(end_time)
         remove_modal_spinner()
@@ -881,6 +1124,7 @@ shinyServer(function(input, output, session) {
     
     output$plotly_plot <- renderPlotly({
       umap_dist <- myvals$umap_dist
+      
       if(is.null(umap_dist)){}
       else{
         if(!is.null(myvals$RemoveGenesFromConvexCloud)){
@@ -896,10 +1140,10 @@ shinyServer(function(input, output, session) {
         start.values <- myvals$start.values
       }
      
-      
     NewUMAP <- Scaling(umap_dist, start.values[1]*isolate(input$scaling))
     NewUMAP <- Rotation(as.matrix(NewUMAP), start.values[2]  , start.values[3] , start.values[4])
     NewUMAP <- Translation(NewUMAP, start.values[5] , start.values[6] ,start.values[7])
+    
     # myvals$NewUMAP <- NewUMAP
     # NewUMAP <- myvals$NewUMAP
     
@@ -918,6 +1162,7 @@ shinyServer(function(input, output, session) {
       
     }
     NewUMAP <- myvals$NewUMAP
+    
     # Colors to the New UMAP cloud
     Lab <- NewUMAP
     Lab <- round(Lab, 2)

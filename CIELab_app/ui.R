@@ -65,7 +65,8 @@ sidebar <- dashboardSidebar(
                 # ,"umap"),
                 hr()
                 ), #conditionalPanel
-                menuItem("Download", icon = icon("file-export", lib = "font-awesome"), tabName = "Download")
+                menuItem("Download", icon = icon("file-export", lib = "font-awesome"), tabName = "Download"),
+                menuItem("Help Pages", icon = icon("info", lib = "font-awesome"), tabName = "Help")
     )
 )
 
@@ -93,36 +94,100 @@ body <-
 
                      br(),
                      
-                     conditionalPanel(
-                       condition = "input.uiLoadGraphOptionsInput == 'oF'",
+                     # conditionalPanel(
+                     #   condition = "input.uiLoadGraphOptionsInput == 'oF'",
                        prettyRadioButtons("matrix", "1: Type of Data",
                                           choices = c('Single-cells' = 'Single-cells',
                                                       'High Dimensional' = 'High Dimensional',
                                                       'Distance matrix'=  'Distance matrix',
                                                       '3D data' = '3D data'), 
                                           selected = character(0), status = 'warning', inline = T),
-                     ),
+                     # ),
                      br(),
                      
                      # After ISMB
-                     # conditionalPanel(
-                     #   condition = "input.matrix != null",
-                       
-                     selectInput("uiLoadGraphOptionsInput",
+                     conditionalPanel(
+                       condition = "input.matrix != null",
+
+                       conditionalPanel(
+                         condition = "input.matrix == 'Single-cells'",
+                     selectInput("LoadFileSingleCellsInput",
                        "2: Choose File(s)",
                        c(
                          "File upload" = "oF",
-                         "Single-cells example: GSE75748_time_course" = "oR_Example1",
+                         "Single-cells example: GSE75748_time_course" = "oR_Example1"
+                         # "Single-cells Big example: GSE75748_cell_type" = "oR_Example2",
+                         # "3D example" = "oR_Example3"
+                         )
+                     ),
+                     uiOutput("LoadFileSingleCellsOutput")
+                       ), # conditionalPanel Single cells
+                     
+                     
+                       conditionalPanel(
+                         condition = "input.matrix == 'High Dimensional'",
+                     selectInput("LoadFileHighDInput",
+                       "2: Choose File(s)",
+                       c(
+                         "File upload" = "oF"
+                         # "Single-cells example: GSE75748_time_course" = "oR_Example1"
+                         # "Single-cells Big example: GSE75748_cell_type" = "oR_Example2",
+                         # "3D example" = "oR_Example3"
+                         )
+                     ),
+                     uiOutput("LoadFileHighDOutput")
+                       ), # conditionalPanel 'High Dimensional'
+                     
+                     
+                       conditionalPanel(
+                         condition = "input.matrix == 'Distance matrix'",
+                     selectInput("LoadFileDistInput",
+                       "2: Choose File(s)",
+                       c(
+                         "File upload" = "oF"
+                         # "Single-cells example: GSE75748_time_course" = "oR_Example1"
+                         # "Single-cells Big example: GSE75748_cell_type" = "oR_Example2",
+                         # "3D example" = "oR_Example3"
+                         )
+                     ),
+                     uiOutput("LoadFileDistOutput")
+                       ), # conditionalPanel 'Distance matrix'
+                     
+                     
+                       conditionalPanel(
+                         condition = "input.matrix == '3D data'",
+                     selectInput("LoadFile3DInput",
+                       "2: Choose File(s)",
+                       c(
+                         "File upload" = "oF",
+                         # "Single-cells example: GSE75748_time_course" = "oR_Example1"
                          # "Single-cells Big example: GSE75748_cell_type" = "oR_Example2",
                          "3D example" = "oR_Example3"
                          )
                      ),
+                     uiOutput("LoadFile3DOutput")
+                       ), # conditionalPanel '3D data'
                      
-                     uiOutput("uiLoadGraphOptionsOutput"),
-                     # ), # conditionPannel
+                     # uiOutput("uiLoadGraphOptionsOutput")
+                     
+                      
+                     ), # conditionPannel input$matrix != null
+
                      conditionalPanel(
-                       condition = "input.uiLoadGraphOptionsInput == 'oF'",
-                     prettyCheckbox("header", "Header", TRUE, status = 'danger', bigger = T)),
+                       condition = "input.matrix == 'Single-cells' && input.LoadFileSingleCellsInput == 'oF'",
+                     prettyCheckbox("header1", "Header", TRUE, status = 'danger', bigger = T)),
+                     
+                     conditionalPanel(
+                       condition = "input.matrix == 'High Dimensional' && input.LoadFileHighDInput == 'oF'",
+                     prettyCheckbox("header2", "Header", TRUE, status = 'danger', bigger = T)),
+                     
+                     conditionalPanel(
+                       condition = "input.matrix == 'Distance matrix' && input.LoadFileDistInput == 'oF'",
+                     prettyCheckbox("header3", "Header", TRUE, status = 'danger', bigger = T)),
+                     
+                     conditionalPanel(
+                       condition = "input.matrix == '3D data' && input.LoadFile3DInput == 'oF'",
+                     prettyCheckbox("header4", "Header", TRUE, status = 'danger', bigger = T)),
                      
                      tags$head(
                        tags$style(HTML('#btnanalysis{border-color:red}'))
@@ -247,26 +312,15 @@ body <-
             hr(),
             hr(),
             dataTableOutput("download_table")
-
-    )
+            ), # tabItem Download
     
-    )
+    tabItem(tabName = "Help"
+            ) # tabItem Help
+    
+    ) # tabItems
 
-        
-        # Show a plot of the generated distribution
-        # mainPanel(
-            
-            # plotlyOutput("plotly_plot"),
-            # uiOutput("list_of_parameters"),
-            # dataTableOutput("table"),
-            # 
-            # plotOutput("satellite1"),
-            # plotOutput("satellite2")
-            # verbatimTextOutput("summary")
-            
-        
-    # )
-))
+) # fluidPage
+) # dashboardBody
 
 dashboardPage(skin = "purple",
     dashboardHeader(title = "U-CIE",
