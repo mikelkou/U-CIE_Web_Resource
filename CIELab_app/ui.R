@@ -16,16 +16,16 @@ options(shiny.maxRequestSize = 100*1024^2)
 sidebar <- dashboardSidebar(
     # sidebarMenu(id="tabs", sidebarMenuOutput("menu"))
     sidebarMenu(id="tabs",
-                tags$div(id = "upload_div", style="margin-left:20px;", style="margin-bottom:15px;", style="margin-top:15px;", style= "font-size: 15px", 
+                tags$div(id = "upload_div", style="margin-left:20px;", style="margin-bottom:20px;", style="margin-top:15px;", style= "font-size: 20px", 
                          menuItem("Upload Files", tabName = "upload", icon = icon("file-upload", lib = "font-awesome"))),
                 
-                tags$div(id = "umap_div", style="margin-left:20px;", style="margin-bottom:15px;", style= "font-size: 15px",
+                tags$div(id = "umap_div", style="margin-left:20px;", style="margin-bottom:20px;", style= "font-size: 20px",
                          menuItem("3D View", tabName = "umap", icon = icon("bar-chart-o"))),
                 
-                tags$div(id = "satellite_div", style="margin-left:20px;", style="margin-bottom:15px;", style= "font-size: 15px",
+                tags$div(id = "satellite_div", style="margin-left:20px;", style="margin-bottom:20px;", style= "font-size: 20px",
                          menuItem("2D projections", icon = icon("bar-chart-o"), tabName = "satellites")),
                 
-                tags$div(id = "console_div", style="margin-left:20px;", style="margin-bottom:15px;", style= "font-size: 15px",
+                tags$div(id = "console_div", style="margin-left:20px;", style="margin-bottom:20px;", style= "font-size: 20px",
                          menuItem("Console output", icon = icon("terminal", lib = "font-awesome"), tabName = "console")),
                          # badgeLabel = "new", badgeColor = "green"),
                 
@@ -74,11 +74,11 @@ sidebar <- dashboardSidebar(
                 hr()
                 ), #conditionalPanel
                 
-                tags$div(id = "download_div", style="margin-left:20px;", style="margin-bottom:15px;", style= "font-size: 15px",
+                tags$div(id = "download_div", style="margin-left:20px;", style="margin-bottom:20px;", style= "font-size: 20px",
                          menuItem("Download", icon = icon("file-export", lib = "font-awesome"), tabName = "Download"))
                 # ,
                 # 
-                # tags$div(id = "help_div", style="margin-left:20px;", style="margin-bottom:15px;", style= "font-size: 15px",
+                # tags$div(id = "help_div", style="margin-left:20px;", style="margin-bottom:20px;", style= "font-size: 20px",
                 #          menuItem("Help Pages", icon = icon("info", lib = "font-awesome"), tabName = "Help"))
                 
                 
