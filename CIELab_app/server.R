@@ -46,6 +46,10 @@ shinyServer(function(input, output, session) {
     
     read_data <- function(datapath, type = c("txt"), header = T, sep = "\t", quote = "\"") ({
       if(input$matrix == 'Single-cells'){
+        if (is.null(input$file1)) {
+          return()
+        } else {
+        
         if(endsWith(input$file1$name, 'xlsx')){
           dataset1 <- as.data.frame(read_excel(input$file1$datapath, 1, col_names = ifelse(input$header1==T, T, F)))
         } 
@@ -59,10 +63,13 @@ shinyServer(function(input, output, session) {
           dataset1 <- read.table(input$file1$datapath, header = input$header1, sep = "\t")
         }
         return(dataset1)
-        
+        }
       }
       
       if(input$matrix == 'High Dimensional'){
+        if (is.null(input$file2)) {
+          return()
+        } else {
         if(endsWith(input$file2$name, 'xlsx')){
           dataset2 <- as.data.frame(read_excel(input$file2$datapath, 1, col_names = ifelse(input$header2==T, T, F)))
         } 
@@ -76,10 +83,13 @@ shinyServer(function(input, output, session) {
           dataset2 <- read.table(input$file2$datapath, header = input$header2, sep = "\t")
         }
         return(dataset2)
-        
+        } 
       }
       
       if(input$matrix == 'Distance matrix'){
+        if (is.null(input$file3)) {
+          return()
+        } else {
         if(endsWith(input$file3$name, 'xlsx')){
           dataset3 <- as.data.frame(read_excel(input$file3$datapath, 1, col_names = ifelse(input$header3==T, T, F)))
         } 
@@ -93,10 +103,13 @@ shinyServer(function(input, output, session) {
           dataset3 <- read.table(input$file3$datapath, header = input$header3, sep = "\t")
         }
         return(dataset3)
-        
+        }
       }
       
       if(input$matrix == '3D data'){
+        if (is.null(input$file4)) {
+          return()
+        } else {
         if(endsWith(input$file4$name, 'xlsx')){
           dataset4 <- as.data.frame(read_excel(input$file4$datapath, 1, col_names = ifelse(input$header4==T, T, F)))
         } 
@@ -115,7 +128,7 @@ shinyServer(function(input, output, session) {
         dataset4 <- NULL
       }
         return(dataset4)
-        
+        }
       }
       
       # print(dataset)
@@ -230,20 +243,30 @@ shinyServer(function(input, output, session) {
       
       enable("btnanalysis")
       
-      # print(dataset1)
-      # print(dataset2)
-      # print(dataset3)
-      # print(dataset4)
+      if(input$matrix == 'Single-cells'){
+        if (input$LoadFileSingleCellsInput == "oF" && is.null(input$file1)) {
+          return()
+        } else return(dataset1)
+      }
       
-      if(input$matrix == 'Single-cells')
-        return(dataset1)
-      if(input$matrix == 'High Dimensional')
-        return(dataset2)
-      if(input$matrix == 'Distance matrix')
-        return(dataset3)
-      if(input$matrix == '3D data')
-        return(dataset4)
-      
+      if(input$matrix == 'High Dimensional'){
+        if (input$LoadFileHighDInput == "oF" && is.null(input$file2)) {
+          return()
+        } else return(dataset2)
+      }
+        
+      if(input$matrix == 'Distance matrix'){
+        if (input$LoadFileDistInput == "oF" && is.null(input$file3)) {
+          return()
+        } else return(dataset3)
+      }
+        
+      if(input$matrix == '3D data'){
+        if (input$LoadFile3DInput == "oF" && is.null(input$file4)) {
+          return()
+        } else return(dataset4)
+      }
+
       
       # return(dataset1)
     }
@@ -374,13 +397,16 @@ shinyServer(function(input, output, session) {
           stop(safeError(e))
         }
       )
-        datatable(df[1:10,], options = list(pageLength = 10, scrollX = TRUE))
+        datatable(df[1:10,], caption = paste("Total number of rows: ", nrow(df), "  |  ", "Total number of columns: ", ncol(df)), 
+                  options = list(pageLength = 10, scrollX = TRUE))
       
     })
     
     
     observe({
+      disable("btnanalysis")
       req(input$btnanalysis)
+      enable("btnanalysis")
       isolate({
       # withProgress(min = 0, max = 1, {
       #   disable("btnanalysis")
@@ -545,7 +571,7 @@ shinyServer(function(input, output, session) {
         # data <- RunUMAP(data, dims = 1:50, n.components = 3L)
         # data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
         withConsoleRedirect("console", {
-        data <- umap(loadNetworkFromFile(), ret_nn = TRUE, n_neighbors = 5, n_components = 3) # library(uwot)
+        data <- uwot::umap(loadNetworkFromFile(), ret_nn = TRUE, n_neighbors = 5, n_components = 3) # library(uwot)
         data_umap_coord <- as.data.frame(data$embedding)
         })
         
@@ -556,17 +582,36 @@ shinyServer(function(input, output, session) {
             
       if(input$matrix == 'Distance matrix'){
         # if(input$uiLoadGraphOptionsInput != "oR_Example1" || input$uiLoadGraphOptionsInput != "oR_Example2"){
+        
+        if(ncol(loadNetworkFromFile())!=nrow(loadNetworkFromFile())){
+          withConsoleRedirect("console", {
+          print(paste("Number of rows: ", nrow(loadNetworkFromFile())))
+          print(paste("Number of columns: ", ncol(loadNetworkFromFile())))
+          })
           
-        withConsoleRedirect("console", {
-        data <- as.matrix(dist(loadNetworkFromFile()))
-        data <- umap(data, input="dist", n_components = 3)
-        data_umap_coord <- as.data.frame(data$layout)
-        })
-        umap_dist <- data_umap_coord
-        myvals$umap_dist <- umap_dist
-        print("Distance")
+          showModal(modalDialog(title = paste("Distance matrix should have the same number of rows and columns (NxN matrix). ", 
+                                "Number of rows: ", nrow(loadNetworkFromFile()), 
+                                "Number of columns: ", ncol(loadNetworkFromFile()))
+                                , 
+                                easyClose = T, fade = T))
+          
+          
+          
+          return()
+         
+        } else {
+          withConsoleRedirect("console", {
+            data <- as.matrix(dist(loadNetworkFromFile()))
+            data <- umap(data, input="dist", n_components = 3)
+            data_umap_coord <- as.data.frame(data$layout)
+            umap_dist <- data_umap_coord
+            myvals$umap_dist <- umap_dist
+          })
+          print("Distance")
+        }
         # }
       }
+            
       if(input$matrix == "3D data"){
         if(input$LoadFile3DInput != "oR_Example3"){
           
@@ -591,6 +636,24 @@ shinyServer(function(input, output, session) {
         myvals$NewUMAP <- df
         print("3D")
         }
+        
+        if(input$LoadFile3DInput == "oR_Example3"){
+          # 2
+          input$btnanalysis
+          
+          isolate({
+            show_modal_spinner(spin = "circle", text = "Please wait..." )
+            withConsoleRedirect("console", {
+              df <- loadNetworkFromFile()
+              rownames(df) <- loadNetworkFromFile()[,1]
+              df <- df[,2:ncol(df)]
+              myvals$umap_dist <- df
+              myvals$NewUMAP <- df
+            })
+            print("oR_Example3")
+          }) # isolate
+        }
+        
       }
           }) # isolate
       # } # of
@@ -699,23 +762,6 @@ shinyServer(function(input, output, session) {
         #     myvals$umap_dist <- umap_dist
         # }) # isolate
         # }
-        
-        if(input$LoadFile3DInput == "oR_Example3"){
-          # 2
-          input$btnanalysis
-          
-          isolate({
-            show_modal_spinner(spin = "circle", text = "Please wait..." )
-            withConsoleRedirect("console", {
-              df <- loadNetworkFromFile()
-              rownames(df) <- loadNetworkFromFile()[,1]
-              df <- df[,2:ncol(df)]
-              myvals$umap_dist <- df
-              myvals$NewUMAP <- df
-              print("oR_Example3")
-            })
-          }) # isolate
-        }
         
         
       # myvals$umap_dist_stored <- myvals$umap_dist
@@ -1523,8 +1569,12 @@ shinyServer(function(input, output, session) {
     
     observeEvent(input$openModal, {
       showModal(
-        modalDialog(title = "Some title",
-                    p("Some information"))
+        modalDialog(title = "Contact info:",
+                    p("Mikaela Koutrouli: mikaela.koutrouli@cpr.ku.dk"),
+                      p("Lars Juhl Jensen: lars.juhl.jensen@cpr.ku.dk"), 
+                      p("For better explanation of the idea, here you can watch a 7min talk about it:"), 
+                    tags$a(href = 'https://youtu.be/V6KgC5KJ-3g', "U-CIE: Color encoding of high-dimensional data using the CIELAB color space and UMAP")
+                    )
       )
     })
 })
