@@ -130,8 +130,6 @@ body <-
                        c(
                          "File upload" = "oF",
                          "Single-cells example: GSE75748_time_course" = "oR_Example1"
-                         # "Single-cells Big example: GSE75748_cell_type" = "oR_Example2",
-                         # "3D example" = "oR_Example3"
                          )
                      ),
                      uiOutput("LoadFileSingleCellsOutput")
@@ -143,10 +141,8 @@ body <-
                      selectInput("LoadFileHighDInput",
                        "2: Choose File(s)",
                        c(
-                         "File upload" = "oF"
-                         # "Single-cells example: GSE75748_time_course" = "oR_Example1"
-                         # "Single-cells Big example: GSE75748_cell_type" = "oR_Example2",
-                         # "3D example" = "oR_Example3"
+                         "File upload" = "oF",
+                         "High Dimensional example" = "oR_Example_highd"
                          )
                      ),
                      uiOutput("LoadFileHighDOutput")
@@ -158,10 +154,8 @@ body <-
                      selectInput("LoadFileDistInput",
                        "2: Choose File(s)",
                        c(
-                         "File upload" = "oF"
-                         # "Single-cells example: GSE75748_time_course" = "oR_Example1"
-                         # "Single-cells Big example: GSE75748_cell_type" = "oR_Example2",
-                         # "3D example" = "oR_Example3"
+                         "File upload" = "oF",
+                         "Distance example" = "oR_Example_distance"
                          )
                      ),
                      uiOutput("LoadFileDistOutput")
@@ -174,8 +168,6 @@ body <-
                        "2: Choose File(s)",
                        c(
                          "File upload" = "oF",
-                         # "Single-cells example: GSE75748_time_course" = "oR_Example1"
-                         # "Single-cells Big example: GSE75748_cell_type" = "oR_Example2",
                          "3D example" = "oR_Example3"
                          )
                      ),
@@ -308,7 +300,7 @@ body <-
             # h2("Satellites"),
             br(),
             br(),
-            column(8,plotlyOutput("satellite"),
+            column(8,plotlyOutput("satellite"),plotlyOutput("satellite2"),
                    hidden(actionButton("remove_genes", "Remove Genes and Re-color!")), # Hidden up to ISMB
                    hidden(actionButton("reset_genes", "Reset")), # Hidden up to ISMB
                    # uiOutput("reset")

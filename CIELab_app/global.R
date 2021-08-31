@@ -41,10 +41,12 @@ library(prodlim)
 library(shinyWidgets)
 library(colorspace)
 
+library(timecourse) # time course example for high dimensional https://www.bioconductor.org/packages/devel/bioc/vignettes/timecourse/inst/doc/timecourse.pdf
+
 # library(config)
 library(future)
 library(promises)
-plan(multisession, workers = 2L)
+plan(multisession, workers = 16L)
 
 # library(ipc)
 # 
