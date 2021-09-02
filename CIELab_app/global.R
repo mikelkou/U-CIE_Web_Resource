@@ -47,7 +47,7 @@ library(timecourse) # time course example for high dimensional https://www.bioco
 library(future)
 library(promises)
 # future::plan(multisession, workers = 8)
-future::plan(multisession)
+future::plan(multisession, workers = 16L)
 
 # library(ipc)
 # 
