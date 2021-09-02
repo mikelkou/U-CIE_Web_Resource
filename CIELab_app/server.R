@@ -896,7 +896,7 @@ shinyServer(function(input, output, session) {
         Wb <- isolate(input$weightB)
         
         # simplex_vectors <- FitColorsFunction(umap_dist, polygon, WL, Wa, Wb)
-        plan(multisession, workers = 16L)
+        plan(multisession)
         promise <- future_promise(FitColorsFunction(umap_dist, polygon, WL, Wa, Wb))
         then(promise, function(simplex_vectors) {
           myvals$start.values <- simplex_vectors[which(simplex_vectors[,1] == max(simplex_vectors[,1]))[1], ]

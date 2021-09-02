@@ -48,7 +48,7 @@ library(future)
 library(promises)
 # future::plan(multisession, workers = 8)
 # future::plan(multisession, workers = 16L)
-
+plan(multisession)
 # library(ipc)
 # 
 # library(foreach)
