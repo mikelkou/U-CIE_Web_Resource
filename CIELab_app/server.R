@@ -393,6 +393,7 @@ shinyServer(function(input, output, session) {
       disable("btnanalysis")
       req(input$btnanalysis)
       enable("btnanalysis")
+      
       isolate({
       # withProgress(min = 0, max = 1, {
       #   disable("btnanalysis")
@@ -588,6 +589,7 @@ shinyServer(function(input, output, session) {
                 myvals$umap_dist <- df
                 myvals$NewUMAP <- df
                 print("3D")
+                
               }
               
               if(input$LoadFile3DInput == "oR_Example3"){
@@ -602,10 +604,12 @@ shinyServer(function(input, output, session) {
                     # df <- df[,2:ncol(df)]
                     myvals$umap_dist <- df
                     myvals$NewUMAP <- df
-                  }) # print("oR_Example3")
+                  }) 
                 }) # isolate
-              }
-            }
+                
+              } # "oR_example3
+              
+            } # 3D data
           }) # isolate
           # } # of
         
@@ -682,195 +686,226 @@ shinyServer(function(input, output, session) {
     })
     
     
+    # observe({
+    #   # withProgress(min = 0, max = 1, {
+    #   #   incProgress(message = "Calculation in progress",
+    #   #               # detail = "This may take a while...",
+    #   #               amount = .1)
+    #     umap_dist <- myvals$umap_dist 
+    #     
+    #     if(is.null(umap_dist)){}
+    #     else{
+    #       show_modal_spinner(spin = "circle", text = "Please wait..." )
+    #       
+    #       if(!is.null(myvals$RemoveGenesFromConvexCloud)){
+    #         req(input$remove_genes)
+    #         umap_dist <- myvals$RemoveGenesFromConvexCloud
+    #       }
+    #       
+    #       
+    #       input$weightButton
+    #     WL <- isolate(input$weightL)
+    #     Wa <- isolate(input$weightA)
+    #     Wb <- isolate(input$weightB)
+    #     
+    # 
+    #     #--- Functions ---#
+    #     Rotation <- function(ConvexCloud, RotL, Rota, Rotb){
+    #         ConvexCloud <- rotate3d(obj = ConvexCloud, angle = RotL, x = 1, y = 0, z = 0)
+    #         ConvexCloud <- rotate3d(obj = ConvexCloud, angle = Rota, x = 0, y = 1, z = 0)
+    #         ConvexCloud <- rotate3d(obj = ConvexCloud, angle = Rotb, x = 0, y = 0, z = 1)
+    #         return(ConvexCloud)
+    #     }
+    #     Translation <- function(ConvexCloud, TrL, Tra, Trb){
+    #         ConvexCloud <- translate3d(ConvexCloud, TrL, Tra, Trb)
+    #         return(ConvexCloud)
+    #     }
+    #     Scaling <- function(ConvexCloud, S){
+    #         ConvexCloud <- scale3d(ConvexCloud, S, S, S)
+    #         return(ConvexCloud)
+    #     }
+    #     Distance <- function(S, RotL, Rota, Rotb,  TrL, Tra, Trb, Query, polygon, faces){
+    #         ConvexCloud <- NewConvexCloud(S, RotL, Rota, Rotb,  TrL, Tra, Trb, Query)
+    #         point_in_space <- pip3d(polygon, faces, ConvexCloud)
+    #         outside <- ConvexCloud[which(point_in_space==-1), ]
+    #         # print(outside)
+    #         if(length(outside) == 0){
+    #             dist <- 0
+    #         } else {
+    #             dist_mat <- distmat(polygon, outside)
+    #             dist <- as.data.frame(apply(dist_mat,2,min))
+    #         }
+    #         return(dist)
+    #     } # Gives me the distance of the points from the Polygon
+    #     MasterFunction <- function(param, data, polygon, faces){
+    #         X <- Distance(param[1],param[2],param[3],param[4],param[5],param[6],param[7], data, polygon, faces) # S, RotL, Rota, Rotb,  TrL, Tra, Trb
+    #         a <- 1
+    #         f <- (a*param[1]) - sum(X^2)
+    #         return(f)
+    #     }
+    #     NewConvexCloud <- function(S, RotL, Rota, Rotb,  TrL, Tra, Trb, Query){
+    #         ConvexCloud <- Rotation(Query, RotL, Rota, Rotb)
+    #         ConvexCloud <- Scaling(ConvexCloud, S)
+    #         ConvexCloud <- Translation(ConvexCloud, TrL, Tra, Trb)
+    #         
+    #         L <- (max(ConvexCloud[,1]) - min(ConvexCloud[,1]))
+    #         a <- (max(ConvexCloud[,2]) - min(ConvexCloud[,2]))
+    #         b <- (max(ConvexCloud[,3]) - min(ConvexCloud[,3]))
+    #         
+    #         if(b > L & b > a){
+    #             ConvexCloud <- ConvexCloud
+    #         } else {
+    #             # print(S)
+    #             ConvexCloud[,1] <- WL*ConvexCloud[,1]
+    #             ConvexCloud[,2] <- Wa*ConvexCloud[,2]
+    #             ConvexCloud[,3] <- Wb*ConvexCloud[,3]
+    #         }
+    #         return(ConvexCloud)
+    #     } # Transform the UMAP Convex to otpimize it
+    #     #---#
+    #     
+    #     dat <- UMAPConvex(umap_dist)
+    #     faces <- convhulln(polygon, return.non.triangulated.facets = T)
+    #     
+    #     #------ Initial Guess ---------------------------------------------------------#
+    #     #--- Translation ---#
+    #     centroidval_color_space <- colMeans(polygon) # centroid of color space
+    #     centroidval_cloud <- colMeans(UMAPConvex(umap_dist)) # centroid of cloud
+    #     
+    #     TrL <- (centroidval_color_space - centroidval_cloud)[1]
+    #     Tra <- (centroidval_color_space - centroidval_cloud)[2]
+    #     Trb <- (centroidval_color_space - centroidval_cloud)[3]
+    #     
+    #     #--- Scaling factor ---#
+    #     ConvexCloud <- (UMAPConvex(umap_dist))
+    #     
+    #     Cloud1Size <- max(ConvexCloud[, 1]) - min(ConvexCloud[, 1])
+    #     Cloud2Size <- max(ConvexCloud[, 2]) - min(ConvexCloud[, 2])
+    #     Cloud3Size <- max(ConvexCloud[, 3]) - min(ConvexCloud[, 3])
+    #     
+    #     # Find the smallest and use it as L
+    #     
+    #     Cloud_scaled <- matrix(nrow = nrow(ConvexCloud), ncol = ncol(ConvexCloud))
+    #     if (Cloud1Size < Cloud2Size & Cloud1Size < Cloud3Size) {
+    #         MaxScalingFactor_1 <- max(polygon[,1]) / Cloud1Size
+    #         MaxScalingFactor_2 <- max(polygon[,2]) / Cloud2Size
+    #         MaxScalingFactor_3 <- max(polygon[,3]) / Cloud3Size
+    #         
+    #         MaxScalingFactor <- ifelse(MaxScalingFactor_1 < MaxScalingFactor_2,MaxScalingFactor_1, MaxScalingFactor_2)
+    #         MaxScalingFactor <- ifelse(MaxScalingFactor < MaxScalingFactor_3, MaxScalingFactor, MaxScalingFactor_3)
+    #         
+    #         #offset
+    #         Cloud1offset <- (max(ConvexCloud[, 1]) + min(ConvexCloud[, 1])) / 2
+    #         Cloud2offset <- (max(ConvexCloud[, 2]) + min(ConvexCloud[, 2])) / 2
+    #         Cloud3offset <- (max(ConvexCloud[, 3]) + min(ConvexCloud[, 3])) / 2
+    #         
+    #         Cloud_scaled[, 1] <- (ConvexCloud[, 1] - Cloud1offset) * MaxScalingFactor + 50
+    #         Cloud_scaled[, 2] <- (ConvexCloud[, 2] - Cloud2offset) * MaxScalingFactor
+    #         Cloud_scaled[, 3] <- (ConvexCloud[, 3] - Cloud3offset) * MaxScalingFactor
+    #     }
+    #     if (Cloud2Size < Cloud1Size & Cloud2Size < Cloud3Size) {
+    #         MaxScalingFactor_1 <- max(polygon[,2]) / Cloud1Size
+    #         MaxScalingFactor_2 <- max(polygon[,1]) / Cloud2Size
+    #         MaxScalingFactor_3 <- max(polygon[,3]) / Cloud3Size
+    #         
+    #         MaxScalingFactor <- ifelse(MaxScalingFactor_1 < MaxScalingFactor_2, MaxScalingFactor_1, MaxScalingFactor_2)
+    #         MaxScalingFactor <- ifelse(MaxScalingFactor < MaxScalingFactor_3, MaxScalingFactor, MaxScalingFactor_3)
+    #         
+    #         #offset
+    #         Cloud1offset <- (max(ConvexCloud[, 1]) + min(ConvexCloud[, 1])) / 2
+    #         Cloud2offset <- (max(ConvexCloud[, 2]) + min(ConvexCloud[, 2])) / 2
+    #         Cloud3offset <- (max(ConvexCloud[, 3]) + min(ConvexCloud[, 3])) / 2
+    #         
+    #         Cloud_scaled[, 1] <- (ConvexCloud[, 2] - Cloud2offset) * MaxScalingFactor + 50
+    #         Cloud_scaled[, 2] <- (ConvexCloud[, 1] - Cloud1offset) * MaxScalingFactor
+    #         Cloud_scaled[, 3] <- (ConvexCloud[, 3] - Cloud3offset) * MaxScalingFactor
+    #     }
+    #     if (Cloud3Size < Cloud1Size & Cloud3Size < Cloud2Size) {
+    #         MaxScalingFactor_1 <- max(polygon[,3]) / Cloud1Size
+    #         MaxScalingFactor_2 <- max(polygon[,2]) / Cloud2Size
+    #         MaxScalingFactor_3 <- max(polygon[,1]) / Cloud3Size
+    #         
+    #         MaxScalingFactor <- ifelse( MaxScalingFactor_1 < MaxScalingFactor_2, MaxScalingFactor_1, MaxScalingFactor_2)
+    #         MaxScalingFactor <- ifelse(MaxScalingFactor < MaxScalingFactor_3, MaxScalingFactor, MaxScalingFactor_3)
+    #         
+    #         #offset
+    #         Cloud1offset <- (max(ConvexCloud[, 1]) + min(ConvexCloud[, 1])) / 2
+    #         Cloud2offset <- (max(ConvexCloud[, 2]) + min(ConvexCloud[, 2])) / 2
+    #         Cloud3offset <- (max(ConvexCloud[, 3]) + min(ConvexCloud[, 3])) / 2
+    #         
+    #         Cloud_scaled[, 1] <- (ConvexCloud[, 3] - Cloud3offset) * MaxScalingFactor  + 50
+    #         Cloud_scaled[, 2] <- (ConvexCloud[, 1] - Cloud1offset) * MaxScalingFactor
+    #         Cloud_scaled[, 3] <- (ConvexCloud[, 2] - Cloud2offset) * MaxScalingFactor
+    #     }
+    #     
+    #     S <- MaxScalingFactor
+    #     
+    #     # Simplex optimizer
+    #     
+    #     set.seed(123)
+    #     angle <- 1
+    #     start.values <- c(S , pi/4 ,pi/4, pi/4, TrL, Tra , Trb) # S, RotL, Rota, Rotb,  TrL, Tra, Trb
+    #     simplex_vectors <- c()
+    #     k <- c()
+    #     
+    #     # f <- future({
+    #       print("future")
+    #       for(i in 1:25){
+    #         Simplex_optim <- optim(par = start.values,
+    #                                method = "Nelder-Mead",
+    #                                MasterFunction,
+    #                                data = dat,
+    #                                polygon = polygon,
+    #                                faces = faces,
+    #                                control=list(fnscale=-1, maxit=1000)) #, trace=T
+    #     k[[i]] <- Simplex_optim
+    #     angle <- angle + 0.5
+    #     start.values <- c(start.values[1], start.values[2]+(pi/angle), start.values[3], start.values[4], start.values[5], start.values[6], start.values[7]) # mirror rotation in x
+    #     simplex_vectors <- rbind(simplex_vectors, k[[i]]$par)
+    #       }
+    #     myvals$start.values <- simplex_vectors[which(simplex_vectors[,1] == max(simplex_vectors[,1]))[1], ]
+    #     myvals$simplex_vectors <- simplex_vectors
+    #     # }) # future
+    #     # 
+    #     # 
+    #     # myvals$start.values <- value(f)[which(value(f)[,1] == max(value(f)[,1]))[1], ]
+    #     # myvals$simplex_vectors <- value(f)
+    #     # print( myvals$simplex_vectors)
+    #     remove_modal_spinner()
+    #     print("~End~")  
+    #     }
+    #     
+    #   # })
+    # })
+    
+    
     observe({
-      # withProgress(min = 0, max = 1, {
-      #   incProgress(message = "Calculation in progress",
-      #               # detail = "This may take a while...",
-      #               amount = .1)
-        umap_dist <- myvals$umap_dist 
+      umap_dist <- myvals$umap_dist 
+      if(is.null(umap_dist)){}
+      else{
+        show_modal_spinner(spin = "circle", text = "Please wait..." )
         
-        if(is.null(umap_dist)){}
-        else{
-          show_modal_spinner(spin = "circle", text = "Please wait..." )
-          
-          if(!is.null(myvals$RemoveGenesFromConvexCloud)){
-            req(input$remove_genes)
-            umap_dist <- myvals$RemoveGenesFromConvexCloud
-          }
-          
-          
-          input$weightButton
+        if(!is.null(myvals$RemoveGenesFromConvexCloud)){
+          req(input$remove_genes)
+          umap_dist <- myvals$RemoveGenesFromConvexCloud
+        }
+        
+        input$weightButton
         WL <- isolate(input$weightL)
         Wa <- isolate(input$weightA)
         Wb <- isolate(input$weightB)
         
-
-        #--- Functions ---#
-        Rotation <- function(ConvexCloud, RotL, Rota, Rotb){
-            ConvexCloud <- rotate3d(obj = ConvexCloud, angle = RotL, x = 1, y = 0, z = 0)
-            ConvexCloud <- rotate3d(obj = ConvexCloud, angle = Rota, x = 0, y = 1, z = 0)
-            ConvexCloud <- rotate3d(obj = ConvexCloud, angle = Rotb, x = 0, y = 0, z = 1)
-            return(ConvexCloud)
-        }
-        Translation <- function(ConvexCloud, TrL, Tra, Trb){
-            ConvexCloud <- translate3d(ConvexCloud, TrL, Tra, Trb)
-            return(ConvexCloud)
-        }
-        Scaling <- function(ConvexCloud, S){
-            ConvexCloud <- scale3d(ConvexCloud, S, S, S)
-            return(ConvexCloud)
-        }
-        Distance <- function(S, RotL, Rota, Rotb,  TrL, Tra, Trb, Query, polygon, faces){
-            ConvexCloud <- NewConvexCloud(S, RotL, Rota, Rotb,  TrL, Tra, Trb, Query)
-            point_in_space <- pip3d(polygon, faces, ConvexCloud)
-            outside <- ConvexCloud[which(point_in_space==-1), ]
-            # print(outside)
-            if(length(outside) == 0){
-                dist <- 0
-            } else {
-                dist_mat <- distmat(polygon, outside)
-                dist <- as.data.frame(apply(dist_mat,2,min))
-            }
-            return(dist)
-        } # Gives me the distance of the points from the Polygon
-        MasterFunction <- function(param, data, polygon, faces){
-            X <- Distance(param[1],param[2],param[3],param[4],param[5],param[6],param[7], data, polygon, faces) # S, RotL, Rota, Rotb,  TrL, Tra, Trb
-            a <- 1
-            f <- (a*param[1]) - sum(X^2)
-            return(f)
-        }
-        NewConvexCloud <- function(S, RotL, Rota, Rotb,  TrL, Tra, Trb, Query){
-            ConvexCloud <- Rotation(Query, RotL, Rota, Rotb)
-            ConvexCloud <- Scaling(ConvexCloud, S)
-            ConvexCloud <- Translation(ConvexCloud, TrL, Tra, Trb)
-            
-            L <- (max(ConvexCloud[,1]) - min(ConvexCloud[,1]))
-            a <- (max(ConvexCloud[,2]) - min(ConvexCloud[,2]))
-            b <- (max(ConvexCloud[,3]) - min(ConvexCloud[,3]))
-            
-            if(b > L & b > a){
-                ConvexCloud <- ConvexCloud
-            } else {
-                # print(S)
-                ConvexCloud[,1] <- WL*ConvexCloud[,1]
-                ConvexCloud[,2] <- Wa*ConvexCloud[,2]
-                ConvexCloud[,3] <- Wb*ConvexCloud[,3]
-            }
-            return(ConvexCloud)
-        } # Transform the UMAP Convex to otpimize it
-        #---#
-        
-        dat <- UMAPConvex(umap_dist)
-        faces <- convhulln(polygon, return.non.triangulated.facets = T)
-        
-        #------ Initial Guess ---------------------------------------------------------#
-        #--- Translation ---#
-        centroidval_color_space <- colMeans(polygon) # centroid of color space
-        centroidval_cloud <- colMeans(UMAPConvex(umap_dist)) # centroid of cloud
-        
-        TrL <- (centroidval_color_space - centroidval_cloud)[1]
-        Tra <- (centroidval_color_space - centroidval_cloud)[2]
-        Trb <- (centroidval_color_space - centroidval_cloud)[3]
-        
-        #--- Scaling factor ---#
-        ConvexCloud <- (UMAPConvex(umap_dist))
-        
-        Cloud1Size <- max(ConvexCloud[, 1]) - min(ConvexCloud[, 1])
-        Cloud2Size <- max(ConvexCloud[, 2]) - min(ConvexCloud[, 2])
-        Cloud3Size <- max(ConvexCloud[, 3]) - min(ConvexCloud[, 3])
-        
-        # Find the smallest and use it as L
-        
-        Cloud_scaled <- matrix(nrow = nrow(ConvexCloud), ncol = ncol(ConvexCloud))
-        if (Cloud1Size < Cloud2Size & Cloud1Size < Cloud3Size) {
-            MaxScalingFactor_1 <- max(polygon[,1]) / Cloud1Size
-            MaxScalingFactor_2 <- max(polygon[,2]) / Cloud2Size
-            MaxScalingFactor_3 <- max(polygon[,3]) / Cloud3Size
-            
-            MaxScalingFactor <- ifelse(MaxScalingFactor_1 < MaxScalingFactor_2,MaxScalingFactor_1, MaxScalingFactor_2)
-            MaxScalingFactor <- ifelse(MaxScalingFactor < MaxScalingFactor_3, MaxScalingFactor, MaxScalingFactor_3)
-            
-            #offset
-            Cloud1offset <- (max(ConvexCloud[, 1]) + min(ConvexCloud[, 1])) / 2
-            Cloud2offset <- (max(ConvexCloud[, 2]) + min(ConvexCloud[, 2])) / 2
-            Cloud3offset <- (max(ConvexCloud[, 3]) + min(ConvexCloud[, 3])) / 2
-            
-            Cloud_scaled[, 1] <- (ConvexCloud[, 1] - Cloud1offset) * MaxScalingFactor + 50
-            Cloud_scaled[, 2] <- (ConvexCloud[, 2] - Cloud2offset) * MaxScalingFactor
-            Cloud_scaled[, 3] <- (ConvexCloud[, 3] - Cloud3offset) * MaxScalingFactor
-        }
-        if (Cloud2Size < Cloud1Size & Cloud2Size < Cloud3Size) {
-            MaxScalingFactor_1 <- max(polygon[,2]) / Cloud1Size
-            MaxScalingFactor_2 <- max(polygon[,1]) / Cloud2Size
-            MaxScalingFactor_3 <- max(polygon[,3]) / Cloud3Size
-            
-            MaxScalingFactor <- ifelse(MaxScalingFactor_1 < MaxScalingFactor_2, MaxScalingFactor_1, MaxScalingFactor_2)
-            MaxScalingFactor <- ifelse(MaxScalingFactor < MaxScalingFactor_3, MaxScalingFactor, MaxScalingFactor_3)
-            
-            #offset
-            Cloud1offset <- (max(ConvexCloud[, 1]) + min(ConvexCloud[, 1])) / 2
-            Cloud2offset <- (max(ConvexCloud[, 2]) + min(ConvexCloud[, 2])) / 2
-            Cloud3offset <- (max(ConvexCloud[, 3]) + min(ConvexCloud[, 3])) / 2
-            
-            Cloud_scaled[, 1] <- (ConvexCloud[, 2] - Cloud2offset) * MaxScalingFactor + 50
-            Cloud_scaled[, 2] <- (ConvexCloud[, 1] - Cloud1offset) * MaxScalingFactor
-            Cloud_scaled[, 3] <- (ConvexCloud[, 3] - Cloud3offset) * MaxScalingFactor
-        }
-        if (Cloud3Size < Cloud1Size & Cloud3Size < Cloud2Size) {
-            MaxScalingFactor_1 <- max(polygon[,3]) / Cloud1Size
-            MaxScalingFactor_2 <- max(polygon[,2]) / Cloud2Size
-            MaxScalingFactor_3 <- max(polygon[,1]) / Cloud3Size
-            
-            MaxScalingFactor <- ifelse( MaxScalingFactor_1 < MaxScalingFactor_2, MaxScalingFactor_1, MaxScalingFactor_2)
-            MaxScalingFactor <- ifelse(MaxScalingFactor < MaxScalingFactor_3, MaxScalingFactor, MaxScalingFactor_3)
-            
-            #offset
-            Cloud1offset <- (max(ConvexCloud[, 1]) + min(ConvexCloud[, 1])) / 2
-            Cloud2offset <- (max(ConvexCloud[, 2]) + min(ConvexCloud[, 2])) / 2
-            Cloud3offset <- (max(ConvexCloud[, 3]) + min(ConvexCloud[, 3])) / 2
-            
-            Cloud_scaled[, 1] <- (ConvexCloud[, 3] - Cloud3offset) * MaxScalingFactor  + 50
-            Cloud_scaled[, 2] <- (ConvexCloud[, 1] - Cloud1offset) * MaxScalingFactor
-            Cloud_scaled[, 3] <- (ConvexCloud[, 2] - Cloud2offset) * MaxScalingFactor
-        }
-        
-        S <- MaxScalingFactor
-        
-        # Simplex optimizer
-        
-        set.seed(123)
-        angle <- 1
-        start.values <- c(S , pi/4 ,pi/4, pi/4, TrL, Tra , Trb) # S, RotL, Rota, Rotb,  TrL, Tra, Trb
-        simplex_vectors <- c()
-        k <- c()
-        
-        # primise2 <- promise %...>%
-          for(i in 1:25){
-            Simplex_optim <- optim(par = start.values,
-                                   method = "Nelder-Mead",
-                                   MasterFunction,
-                                   data = dat,
-                                   polygon = polygon,
-                                   faces = faces,
-                                   control=list(fnscale=-1, maxit=1000)) #, trace=T
-        k[[i]] <- Simplex_optim
-        angle <- angle + 0.5
-        start.values <- c(start.values[1], start.values[2]+(pi/angle), start.values[3], start.values[4], start.values[5], start.values[6], start.values[7]) # mirror rotation in x
-        simplex_vectors <- rbind(simplex_vectors, k[[i]]$par)
-          }
-        
-        # print(primise2)
-        myvals$start.values <- simplex_vectors[which(simplex_vectors[,1] == max(simplex_vectors[,1]))[1], ]
-        myvals$simplex_vectors <- simplex_vectors
-        
-        # end_time <- Sys.time()
-        # print(end_time)
-        remove_modal_spinner()
-        print("~End~")  
-        }
-        
-      # })
+        # simplex_vectors <- FitColorsFunction(umap_dist, polygon, WL, Wa, Wb)
+        promise <- future_promise(FitColorsFunction(umap_dist, polygon, WL, Wa, Wb))
+        then(promise, function(simplex_vectors) {
+          myvals$start.values <- simplex_vectors[which(simplex_vectors[,1] == max(simplex_vectors[,1]))[1], ]
+          myvals$simplex_vectors <- simplex_vectors
+          remove_modal_spinner()
+        }) # then
+      } # else
     })
+    
+    
     
     
     output$table <- renderDataTable({
