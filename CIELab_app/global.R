@@ -48,6 +48,7 @@ library(future)
 library(promises)
 # future::plan(multisession, workers = 8)
 future::plan(multisession, workers = 16L)
+plan(multicore)
 # plan(multisession)
 # library(ipc)
 # 
