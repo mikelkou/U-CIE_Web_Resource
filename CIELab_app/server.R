@@ -1062,7 +1062,7 @@ shinyServer(function(input, output, session) {
     
     #--- Download file ---#
     DownloadFile <- cbind(rownames(umap_dist), hex(LABdata, fix = TRUE))
-    DownloadFile <- as.data.frame(cbind(DownloadFile, rawdata))
+    DownloadFile <- as.data.frame(cbind(DownloadFile, LABdata@coords))
     rownames(DownloadFile) <- NULL
     colnames(DownloadFile) <- c("Genes", "Colors - Hex codes", "Lstar", "Astar", "Bstar")
     
@@ -1486,7 +1486,7 @@ shinyServer(function(input, output, session) {
     #--- Downloads ---#
     output$downloadData <- downloadHandler(
       filename = function() {
-        paste('Hex_codes-', input$file1, "-" , Sys.Date(), '.tsv', sep='')
+        paste('Hex_codes-Lab_coords-', input$file1, "-" , Sys.Date(), '.tsv', sep='')
       },
       content = function(con) {
         write.table(myvals$DownloadFile, con, quote = F, row.names = F, col.names = T, sep = "\t")
@@ -1494,7 +1494,7 @@ shinyServer(function(input, output, session) {
     )
     
     output$download_table <- renderDataTable({
-      datatable(myvals$DownloadFile, selection = c("none"), colnames = c("Genes", "Colors - Hex codes", "Lstar", "Astar", "Bstar"))
+      datatable(myvals$DownloadFile, selection = c("none"), colnames = c("Names", "Colors - Hex codes", "Lstar", "Astar", "Bstar"))
     })
     
     observeEvent(input$openModal, {
