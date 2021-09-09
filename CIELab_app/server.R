@@ -623,6 +623,35 @@ shinyServer(function(input, output, session) {
     })
     
     
+    output$css_upload <- renderUI({
+      if(input$tabs=='upload'){
+      tags$style(".fa-file-upload {color:#fcd049}")
+      }
+    })
+    output$css_umap <- renderUI({
+      if(input$tabs=='umap'){
+      tags$style(".fa-cube {color:#fcd049}")
+      }
+    })
+    output$css_satellites <- renderUI({
+      if(input$tabs=='satellites'){
+      tags$style(".fa-bar-chart-o {color:#fcd049}")
+      }
+    })
+    output$css_console <- renderUI({
+      if(input$tabs=='console'){
+      tags$style(".fa-terminal {color:#fcd049}")
+      }
+    })
+    output$css_download <- renderUI({
+      if(input$tabs=='Download'){
+      tags$style(".fa-file-export {color:#fcd049}")
+      }
+    })
+    
+    
+    
+    
     # Change tab when UMAP is ready
     switch_tabs <- observeEvent(input$btnanalysis, {
       if(is.null(loadNetworkFromFile())){

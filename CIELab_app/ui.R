@@ -20,7 +20,7 @@ sidebar <- dashboardSidebar(
                          menuItem("Upload Files", tabName = "upload", icon = icon("file-upload", lib = "font-awesome"))),
                 
                 tags$div(id = "umap_div", style="margin-left:20px;", style="margin-bottom:20px;", style= "font-size: 16px",
-                         menuItem("3D View", tabName = "umap", icon = icon("bar-chart-o"))),
+                         menuItem("3D View", tabName = "umap", icon = icon("cube"))),
                 
                 tags$div(id = "satellite_div", style="margin-left:20px;", style="margin-bottom:20px;", style= "font-size: 16px",
                          menuItem("2D projections", icon = icon("bar-chart-o"), tabName = "satellites")),
@@ -28,6 +28,39 @@ sidebar <- dashboardSidebar(
                 tags$div(id = "console_div", style="margin-left:20px;", style="margin-bottom:20px;", style= "font-size: 16px",
                          menuItem("Console output", icon = icon("terminal", lib = "font-awesome"), tabName = "console")),
                          # badgeLabel = "new", badgeColor = "green"),
+                
+                
+                conditionalPanel(
+                  condition = "input.tabs == 'upload'" ,
+                  tags$head(
+                    uiOutput("css_upload")
+                  )
+                ),
+                conditionalPanel(
+                  condition = "input.tabs == 'umap'",
+                  tags$head(
+                    uiOutput("css_umap")
+                  )
+                ),
+                conditionalPanel(
+                  condition = "input.tabs == 'satellites'",
+                  tags$head(
+                    uiOutput("css_satellites")
+                  )
+                ),
+                conditionalPanel(
+                  condition = "input.tabs == 'console'",
+                  tags$head(
+                    uiOutput("css_console")
+                  )
+                ),
+                conditionalPanel(
+                  condition = "input.tabs == 'Download' ",
+                  tags$head(
+                    uiOutput("css_download")
+                  )
+                ),
+                
                 
                 conditionalPanel(
                   condition = "input.btnanalysis != 0",
