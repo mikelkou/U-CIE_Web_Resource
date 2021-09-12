@@ -368,10 +368,10 @@ dashboardPage(skin = "purple",
                             tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "intro.css")),
                             # tags$head(tags$link(rel = "shortcut icon", href = "www/favicon.ico")),
                             tags$head(
-                              tags$link(rel = "shortcut icon", href = "favicon.ico"),
-                              tags$link(rel = "apple-touch-icon", sizes = "180x180", href = "favicon.ico"),
-                              tags$link(rel = "icon", type = "image/png", sizes = "32x32", href = "/favicon-32x32.png"),
-                              tags$link(rel = "icon", type = "image/png", sizes = "16x16", href = "/favicon-16x16.png")
+                              tags$link(rel = "shortcut icon", href = "/www/favicon.ico"),
+                              tags$link(rel = "apple-touch-icon", sizes = "180x180", href = "/www/favicon.ico"),
+                              tags$link(rel = "icon", type = "image/png", sizes = "32x32", href = "/www/favicon-32x32.png"),
+                              tags$link(rel = "icon", type = "image/png", sizes = "16x16", href = "/www/favicon-16x16.png")
                             ),
                             class = "dropdown")
                     
