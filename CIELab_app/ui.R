@@ -366,7 +366,8 @@ dashboardPage(skin = "purple",
                             tags$head(tags$script(src = "intro.js")),
                             tags$head(tags$script(src = "introbutton.js")),
                             tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "intro.css")),
-                            tags$head(tags$link(rel = "shortcut icon", href = "www/favicon.ico")),
+                            # tags$head(tags$link(rel = "shortcut icon", href = "www/favicon.ico")),
+                            shiny::tags$link(rel = "icon", href = "CIELab_app/www/favicon_io 17.29.19/favicon-32x32.png"),
                             class = "dropdown")
                     
     ),
