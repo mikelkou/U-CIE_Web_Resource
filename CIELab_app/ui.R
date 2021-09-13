@@ -366,8 +366,8 @@ dashboardPage(skin = "purple",
                             tags$head(tags$script(src = "intro.js")),
                             tags$head(tags$script(src = "introbutton.js")),
                             tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "intro.css")),
-                            # tags$link(rel = "icon", type = "image/gif", href = "https://drive.google.com/file/d/1HrTQiSi0kso22k4N4r63zLxgnZMrRDuE/view?usp=sharing"),
-                            tags$link(rel = "icon", type = "image/gif", href = "b64"),
+                            tags$link(rel = "icon", type = "image/gif", href = "https://drive.google.com/file/d/1HrTQiSi0kso22k4N4r63zLxgnZMrRDuE/view?usp=sharing"),
+                            # tags$link(rel = "icon", type = "image/gif", href = "b64"),
                             
                             # tags$head(
                             #   tags$link(rel = "shortcut icon", href = "favicon.ico"),
