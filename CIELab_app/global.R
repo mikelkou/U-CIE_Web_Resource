@@ -308,6 +308,5 @@ convertMenuItem <- function(mi,tabName) {
   mi
 }
 
-b64 <- base64enc::dataURI(file = "www/favicon-16x16.png", mime = "image/png")
-# b64 <- base64enc::dataURI(file = "~/Desktop/cielab-440.png", mime = "image/png")
+# b64 <- base64enc::dataURI(file = "www/favicon-16x16.png", mime = "image/png")
 

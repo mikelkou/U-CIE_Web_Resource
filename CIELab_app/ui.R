@@ -366,15 +366,13 @@ dashboardPage(skin = "purple",
                             tags$head(tags$script(src = "intro.js")),
                             tags$head(tags$script(src = "introbutton.js")),
                             tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "intro.css")),
-                            tags$link(rel = "icon", type = "image/gif", href = "https://drive.google.com/file/d/1HrTQiSi0kso22k4N4r63zLxgnZMrRDuE/view?usp=sharing"),
-                            # tags$link(rel = "icon", type = "image/gif", href = "b64"),
                             
-                            # tags$head(
-                            #   tags$link(rel = "shortcut icon", href = "favicon.ico"),
-                            #   tags$link(rel = "apple-touch-icon", sizes = "180x180", href = "favicon.ico"),
-                            #   tags$link(rel = "icon", type = "image/png", sizes = "32x32", href = "favicon-32x32.png"),
-                            #   tags$link(rel = "icon", type = "image/png", sizes = "16x16", href = "favicon-16x16.png")
-                            # ),
+                            tags$head(
+                              tags$link(rel = "shortcut icon", href = "favicon.ico"),
+                              tags$link(rel = "apple-touch-icon", sizes = "180x180", href = "favicon.ico"),
+                              tags$link(rel = "icon", type = "image/png", sizes = "32x32", href = "favicon-32x32.png"),
+                              tags$link(rel = "icon", type = "image/png", sizes = "16x16", href = "favicon-16x16.png")
+                            ),
                             class = "dropdown")
                     
     ),
