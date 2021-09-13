@@ -366,8 +366,8 @@ dashboardPage(skin = "purple",
                             tags$head(tags$script(src = "intro.js")),
                             tags$head(tags$script(src = "introbutton.js")),
                             tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "intro.css")),
-                            tags$head(tags$link(rel = "icon", type="image/x-icon", href = "favicon.ico"),
-                                      tags$link(rel = "shortcut icon", type="image/x-icon", href = "favicon.ico")),
+                            tags$head(tags$link(rel = "icon", type="image/x-icon", href = "www/favicon.ico"),
+                                      tags$link(rel = "shortcut icon", type="image/x-icon", href = "www/favicon.ico")),
 
                             class = "dropdown")
                     
