@@ -55,6 +55,9 @@ plan(multicore)
 # library(foreach)
 # library(doParallel)
 
+library(htmltools) #favicon
+library(R.devices) #favicon
+
 RGB_space <- data.frame("R"= c(seq(0, 255, by=32),255, # K -> R
                                seq(0, 255, by=32),255, # G -> Y
                                rep(255, 9), # Y -> W
