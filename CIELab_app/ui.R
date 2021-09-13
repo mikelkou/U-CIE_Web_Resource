@@ -130,7 +130,7 @@ body <-
     # Application title
     # titlePanel("U-CIE"),
     titlePanel(div(HTML("<strong>U-CIE</strong> <em> [/juː 'siː/] </em> "))),
-    uiOutput("fav"),
+    
     tabItems(tabItem(tabName = "upload",
                      # fileInput("file1", "Upload File",
                      #           multiple = FALSE,
@@ -366,11 +366,9 @@ dashboardPage(skin = "purple",
                             tags$head(tags$script(src = "intro.js")),
                             tags$head(tags$script(src = "introbutton.js")),
                             tags$head(tags$link(rel = "stylesheet", type = "text/css", href = "intro.css")),
-                            # tags$head(tags$link(rel = "icon", type="image/x-icon", href = "www/favicon.ico"),
-                            #           tags$link(rel = "shortcut icon", type="image/x-icon", href = "www/favicon.ico")),
-                              HTML(toFavicon( b64 )), #  since RStudio Viewer doesn't show favicon open in browser
+                            tags$head(tags$link(rel = "icon", type="image/x-icon", href = "www/favicon.ico"),
+                                      tags$link(rel = "shortcut icon", type="image/x-icon", href = "www/favicon.ico")),
                             
-
                             class = "dropdown")
                     
     ),

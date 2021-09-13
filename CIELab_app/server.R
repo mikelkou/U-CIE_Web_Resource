@@ -1536,28 +1536,6 @@ shinyServer(function(input, output, session) {
                     )
       )
     })
-    
-    output$fav= renderUI( {
-      return(
-        HTML(
-          gsub(
-            x =  toFavicon( b64 )
-            ,pattern = '<script>'
-            ,replacement='
-            <script>
-                var l = document.getElementsByTagName("link")
-                for( i = 0; i< l.length; i++){
-                  if(l[i].rel  && l[i].rel==="icon"){
-                    l[i].remove();
-                  }
-                }
-            '
-          )
-        )
-      )
-    })
-    
-    
 }) # THE END
 
 # }) #future promises
