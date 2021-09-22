@@ -512,7 +512,7 @@ shinyServer(function(input, output, session) {
           isolate({
             show_modal_spinner(spin = "circle", text = "Please wait..." )
             withConsoleRedirect("console", {
-              data <- uwot::umap(loadNetworkFromFile(), ret_nn = TRUE, n_neighbors = 15, n_components = 3) # library(uwot)
+              data <- uwot::umap(loadNetworkFromFile(), ret_nn = TRUE, n_neighbors = 5, n_components = 3) # library(uwot)
               data_umap_coord <- as.data.frame(data$embedding)
               rownames(data_umap_coord) <- rownames(loadNetworkFromFile())
             })
