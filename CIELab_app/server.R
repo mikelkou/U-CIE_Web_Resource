@@ -1497,9 +1497,12 @@ shinyServer(function(input, output, session) {
       colnames(df) <- c("Names", "Colors", "brightness")
       df <- na.omit(df)
       
+      if(nrow(df)>=5000){
+        df <- df[1:2000,]
+      }
       datatable(df, rownames = FALSE, extensions = 'Responsive', selection = 'none', 
-                options = list(columnDefs = list(list(targets = 2, visible = FALSE)))) %>% formatStyle(colnames(df), 'Names', # target = 'row',
-        backgroundColor = styleEqual(c(convex_colors[,1]), c(convex_colors[,2])), fontWeight = "bold"
+                options = list(columnDefs = list(list(targets = c(1,2), visible = FALSE)))) %>% formatStyle(colnames(df), 'Names', # target = 'row',
+        backgroundColor = styleEqual(c(convex_colors[1:nrow(df),1]), c(convex_colors[1:nrow(df),2])), fontWeight = "bold"
         # , fontSize = '200%'
       ) %>%
         formatStyle(
@@ -1507,7 +1510,6 @@ shinyServer(function(input, output, session) {
           target = 'row',
           color = styleInterval(50, c('gray', 'black'))
         )
-      
       }
     })
     
