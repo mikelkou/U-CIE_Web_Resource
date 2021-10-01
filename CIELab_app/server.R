@@ -1497,7 +1497,7 @@ shinyServer(function(input, output, session) {
       colnames(df) <- c("Names", "Colors", "brightness")
       df <- na.omit(df)
       
-      if(nrow(df)>=5000){
+      if(nrow(df)>=2000){
         df <- df[1:2000,]
       }
       datatable(df, rownames = FALSE, extensions = 'Responsive', selection = 'none', 
