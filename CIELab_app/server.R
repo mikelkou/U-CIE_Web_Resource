@@ -434,7 +434,8 @@ shinyServer(function(input, output, session) {
           }
           
           matrix_counts <- data.matrix(matrix_counts) # must be a matrix object!
-          TransposedMatrixCounts <- t(matrix_counts)
+          TransposedMatrixCounts <- t(matrix_counts) # Correct!
+          
               withConsoleRedirect("console", {
               data <- CreateSeuratObject(counts = TransposedMatrixCounts)
               
@@ -522,11 +523,17 @@ shinyServer(function(input, output, session) {
         
         else{
           isolate({
+            df = loadNetworkFromFile()
+            if(is.character(df[,1])){
+              rownames(df) <- df[,1]
+              df <- df[,2:ncol(df)]
+            }
+            
             show_modal_spinner(spin = "circle", text = "Please wait..." )
         withConsoleRedirect("console", {
         data <- uwot::umap(loadNetworkFromFile(), ret_nn = TRUE, n_neighbors = 5, n_components = 3) # library(uwot)
         data_umap_coord <- as.data.frame(data$embedding)
-        rownames(data_umap_coord) <- rownames(loadNetworkFromFile())
+        rownames(data_umap_coord) <- rownames(df)
         })
           }) # isolate
         } #else
