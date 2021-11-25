@@ -144,7 +144,7 @@ body <-
                      #   condition = "input.uiLoadGraphOptionsInput == 'oF'",
                        prettyRadioButtons("matrix", "1: Type of Data",
                                           choices = c('Single cells' = 'Single-cells',
-                                                      'High Dimensional' = 'High Dimensional',
+                                                      'High dimensional' = 'High Dimensional',
                                                       'Distance matrix'=  'Distance matrix',
                                                       '3D data' = '3D data'), 
                                           selected = character(0), status = 'warning', inline = T),
@@ -162,7 +162,7 @@ body <-
                        "2: Choose File(s)",
                        c(
                          "File upload" = "oF",
-                         "Single-cells example: GSE75748_time_course" = "oR_Example1"
+                         "Single cells example: GSE75748_time_course" = "oR_Example1"
                          )
                      ),
                      uiOutput("LoadFileSingleCellsOutput")
@@ -175,7 +175,7 @@ body <-
                        "2: Choose File(s)",
                        c(
                          "File upload" = "oF",
-                         "High Dimensional example" = "oR_Example_highd"
+                         "High dimensional example" = "oR_Example_highd"
                          )
                      ),
                      uiOutput("LoadFileHighDOutput")
