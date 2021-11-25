@@ -163,4 +163,3 @@ cielab <- function(umap_dist) {
   return(fig)
 }
 HashmapDataFrame <- HexFromLabData$data.frame()
-
