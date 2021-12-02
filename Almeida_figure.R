@@ -592,8 +592,31 @@ colfunc <- colorRampPalette(c("gray", "white"))
 # colfunc <- colorRampPalette(c("green", "red"))
 
 colfunc(6)
-plot(rep(1,6),col=colfunc(6),pch=19,cex=3)
+plot(rep(1,6),col=colfunc(6),pch=19,cex=3, type = "l")
+
+#- color lines -#
+suppressMessages(library(tidyverse))
+
+slider <- data.frame("values"=seq(0, 1, by = 0.01))
+dot_value <- data.frame("Result"= 0.8)
 
 
+ggplot(slider, aes(x=values, y=0)) +
+  geom_line(aes(color = values),
+            size=1.5)+
+  # geom_point(data=dot_value,
+  #            mapping = aes(as.numeric(Result)),size=4)+
+  # scale_color_gradient(low = "green", high = "red", mid = "gray",) +
+  # scale_color_gradient(low = "green", high = "red") +
+  scale_colour_gradient2(low = "darkgreen", mid="gray", high = "red", midpoint=0.5) +
+  
+  theme(axis.ticks.y=element_blank(),
+        axis.text.y=element_blank()) +
+  xlab("")+
+  ylab("")+
+  theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
+        panel.background = element_blank(), axis.line = element_line(colour = "black"))
+  
+  
 
 
