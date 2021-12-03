@@ -231,7 +231,7 @@ body <-
                      tags$head(
                        tags$style(HTML('#btnanalysis{border-color:red}'))
                      ),
-                     actionButton("btnanalysis", "Analysis"),
+                     actionButton("btnanalysis", "Analyse"),
 
                      # Horizontal line ----
                      tags$hr(),

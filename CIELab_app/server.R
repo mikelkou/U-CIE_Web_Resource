@@ -49,14 +49,14 @@ shinyServer(function(input, output, session) {
         if (is.null(input$file1)) {
           return()
         } else {
-        
+          
         if(endsWith(input$file1$name, 'xlsx')){
           dataset1 <- as.data.frame(read_excel(input$file1$datapath, 1, col_names = ifelse(input$header1==T, T, F)))
         } 
         if(endsWith(input$file1$name, 'csv')){
           dataset1 <- read.table(input$file1$datapath, header = input$header1, sep = ",")
         } 
-        if(endsWith(input$file1$name, 'txt')){
+        if(endsWith(input$file4$name, 'txt') || grepl( ".", ".tsv", fixed = TRUE)){
           dataset1 <- read.table(input$file1$datapath, header = input$header1, sep = "\t")
         }
         if(endsWith(input$file1$name, 'tsv')){
@@ -76,7 +76,7 @@ shinyServer(function(input, output, session) {
         if(endsWith(input$file2$name, 'csv')){
           dataset2 <- read.table(input$file2$datapath, header = input$header2, sep = ",")
         } 
-        if(endsWith(input$file2$name, 'txt')){
+        if(endsWith(input$file4$name, 'txt') || grepl( ".", ".tsv", fixed = TRUE)){
           dataset2 <- read.table(input$file2$datapath, header = input$header2, sep = "\t")
         }
         if(endsWith(input$file2$name, 'tsv')){
@@ -96,7 +96,7 @@ shinyServer(function(input, output, session) {
         if(endsWith(input$file3$name, 'csv')){
           dataset3 <- read.table(input$file3$datapath, header = input$header3, sep = ",")
         } 
-        if(endsWith(input$file3$name, 'txt')){
+        if(endsWith(input$file4$name, 'txt') || grepl( ".", ".tsv", fixed = TRUE)){
           dataset3 <- read.table(input$file3$datapath, header = input$header3, sep = "\t")
         }
         if(endsWith(input$file3$name, 'tsv')){
@@ -110,13 +110,14 @@ shinyServer(function(input, output, session) {
         if (is.null(input$file4)) {
           return()
         } else {
+          
         if(endsWith(input$file4$name, 'xlsx')){
           dataset4 <- as.data.frame(read_excel(input$file4$datapath, 1, col_names = ifelse(input$header4==T, T, F)))
         } 
         if(endsWith(input$file4$name, 'csv')){
           dataset4 <- read.table(input$file4$datapath, header = input$header4, sep = ",")
         } 
-        if(endsWith(input$file4$name, 'txt')){
+        if(endsWith(input$file4$name, 'txt') || grepl( ".", ".tsv", fixed = TRUE)){
           dataset4 <- read.table(input$file4$datapath, header = input$header4, sep = "\t")
         }
         if(endsWith(input$file4$name, 'tsv')){
@@ -429,8 +430,14 @@ shinyServer(function(input, output, session) {
           }
 
           if(is.character(matrix_counts[,1])){
+            if(length(unique(matrix_counts[,1])) != length(matrix_counts[,1])){
+              matrix_counts[,1] = paste(matrix_counts[,1], 1:nrow(matrix_counts), sep = "_")
+              rownames(matrix_counts) <- matrix_counts[,1]
+              matrix_counts <- matrix_counts[,2:ncol(matrix_counts)]
+            } else{
             rownames(matrix_counts) <- matrix_counts[,1]
             matrix_counts <- matrix_counts[,2:ncol(matrix_counts)]
+            }
           }
           
           matrix_counts <- data.matrix(matrix_counts) # must be a matrix object!
@@ -524,10 +531,22 @@ shinyServer(function(input, output, session) {
         else{
           isolate({
             df = loadNetworkFromFile()
+            
             if(is.character(df[,1])){
-              rownames(df) <- df[,1]
-              df <- df[,2:ncol(df)]
+              if(length(unique(df[,1])) != length(df[,1])){
+                df[,1] = paste(df[,1], 1:nrow(df), sep = "_")
+                rownames(df) <- df[,1]
+                df <- df[,2:ncol(df)]
+              } else{
+                rownames(df) <- df[,1]
+                df <- df[,2:ncol(df)]
+              }
             }
+            
+            # if(is.character(df[,1])){
+            #   rownames(df) <- df[,1]
+            #   df <- df[,2:ncol(df)]
+            # }
             
             show_modal_spinner(spin = "circle", text = "Please wait..." )
         withConsoleRedirect("console", {
@@ -543,8 +562,6 @@ shinyServer(function(input, output, session) {
       }
             
       if(input$matrix == 'Distance matrix'){
-        # if(input$uiLoadGraphOptionsInput != "oR_Example1" || input$uiLoadGraphOptionsInput != "oR_Example2"){
-        
         if(ncol(loadNetworkFromFile())!=nrow(loadNetworkFromFile())){
           withConsoleRedirect("console", {
           print(paste("Number of rows: ", nrow(loadNetworkFromFile())))
@@ -579,10 +596,17 @@ shinyServer(function(input, output, session) {
                 
                 df <- c()
                 for(i in 1:ncol(loadNetworkFromFile())){
+
                   if(is.character(loadNetworkFromFile()[,i])){
                     df <- loadNetworkFromFile()[,-i]
-                    rownames(df) <- loadNetworkFromFile()[,i]
-                  } 
+                    
+                    if(length(unique(loadNetworkFromFile()[,i])) != length(loadNetworkFromFile()[,i])){
+                      new_names = paste(loadNetworkFromFile()[,i], 1:nrow(loadNetworkFromFile()), sep = "_")
+                      rownames(df) <- new_names
+                    } else{
+                      rownames(df) <- loadNetworkFromFile()[,1]
+                    }
+                  }
                 }
                 
                 if(is.null(df)){
