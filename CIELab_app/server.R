@@ -50,39 +50,50 @@ shinyServer(function(input, output, session) {
           return()
         } else {
           
-        if(endsWith(input$file1$name, 'xlsx')){
+        if(grepl('xls', input$file1$name, fixed = TRUE)){
           dataset1 <- as.data.frame(read_excel(input$file1$datapath, 1, col_names = ifelse(input$header1==T, T, F)))
         } 
-        if(endsWith(input$file1$name, 'csv')){
+        if(grepl('csv', input$file1$name, fixed = TRUE)){
           dataset1 <- read.table(input$file1$datapath, header = input$header1, sep = ",")
         } 
-        if(endsWith(input$file4$name, 'txt') || grepl( ".", ".tsv", fixed = TRUE)){
+        if(grepl('txt', input$file1$name, fixed = TRUE)){
           dataset1 <- read.table(input$file1$datapath, header = input$header1, sep = "\t")
         }
-        if(endsWith(input$file1$name, 'tsv')){
+        if(grepl('tsv', input$file1$name, fixed = TRUE)){
           dataset1 <- read.table(input$file1$datapath, header = input$header1, sep = "\t")
         }
+          #Missing values
+          if(any(is.na(dataset1)) || any(dataset1 =="")){
+            showModal(modalDialog(title = "There are missing values in your dataset. Please check again!", easyClose = T, fade = T))
+            dataset1 <- NULL
+          }
         return(dataset1)
         }
+        
       }
       
       if(input$matrix == 'High Dimensional'){
         if (is.null(input$file2)) {
           return()
         } else {
-        if(endsWith(input$file2$name, 'xlsx')){
+        if(grepl('xls', input$file2$name, fixed = TRUE)){
           dataset2 <- as.data.frame(read_excel(input$file2$datapath, 1, col_names = ifelse(input$header2==T, T, F)))
         } 
-        if(endsWith(input$file2$name, 'csv')){
+        if(grepl('csv', input$file2$name, fixed = TRUE)){
           dataset2 <- read.table(input$file2$datapath, header = input$header2, sep = ",")
         } 
-        if(endsWith(input$file4$name, 'txt') || grepl( ".", ".tsv", fixed = TRUE)){
+        if(grepl('txt', input$file2$name, fixed = TRUE)){
           dataset2 <- read.table(input$file2$datapath, header = input$header2, sep = "\t")
         }
-        if(endsWith(input$file2$name, 'tsv')){
+        if(grepl('tsv', input$file2$name, fixed = TRUE)){
           dataset2 <- read.table(input$file2$datapath, header = input$header2, sep = "\t")
         }
-        return(dataset2)
+          #Missing values
+          if(any(is.na(dataset2)) || any(dataset2 =="")){
+            showModal(modalDialog(title = "There are missing values in your dataset. Please check again!", easyClose = T, fade = T))
+            dataset2 <- NULL
+          }
+          return(dataset2)
         } 
       }
       
@@ -90,18 +101,23 @@ shinyServer(function(input, output, session) {
         if (is.null(input$file3)) {
           return()
         } else {
-        if(endsWith(input$file3$name, 'xlsx')){
+        if(grepl('xls', input$file3$name, fixed = TRUE)){
           dataset3 <- as.data.frame(read_excel(input$file3$datapath, 1, col_names = ifelse(input$header3==T, T, F)))
         } 
-        if(endsWith(input$file3$name, 'csv')){
+        if(grepl('csv', input$file3$name, fixed = TRUE)){
           dataset3 <- read.table(input$file3$datapath, header = input$header3, sep = ",")
         } 
-        if(endsWith(input$file4$name, 'txt') || grepl( ".", ".tsv", fixed = TRUE)){
+        if(grepl('txt', input$file3$name, fixed = TRUE)){
           dataset3 <- read.table(input$file3$datapath, header = input$header3, sep = "\t")
         }
-        if(endsWith(input$file3$name, 'tsv')){
+        if(grepl('tsv', input$file3$name, fixed = TRUE)){
           dataset3 <- read.table(input$file3$datapath, header = input$header3, sep = "\t")
         }
+          #Missing values
+          if(any(is.na(dataset3)) || any(dataset3 =="")){
+            showModal(modalDialog(title = "There are missing values in your dataset. Please check again!", easyClose = T, fade = T))
+            dataset3 <- NULL
+          }
         return(dataset3)
         }
       }
@@ -111,16 +127,16 @@ shinyServer(function(input, output, session) {
           return()
         } else {
           
-        if(endsWith(input$file4$name, 'xlsx')){
+        if(grepl('xls', input$file4$name, fixed = TRUE)){
           dataset4 <- as.data.frame(read_excel(input$file4$datapath, 1, col_names = ifelse(input$header4==T, T, F)))
         } 
-        if(endsWith(input$file4$name, 'csv')){
+        if(grepl('csv', input$file4$name, fixed = TRUE)){
           dataset4 <- read.table(input$file4$datapath, header = input$header4, sep = ",")
         } 
-        if(endsWith(input$file4$name, 'txt') || grepl( ".", ".tsv", fixed = TRUE)){
+        if(grepl('txt', input$file4$name, fixed = TRUE)){
           dataset4 <- read.table(input$file4$datapath, header = input$header4, sep = "\t")
         }
-        if(endsWith(input$file4$name, 'tsv')){
+        if(grepl('tsv', input$file4$name, fixed = TRUE)){
           dataset4 <- read.table(input$file4$datapath, header = input$header4, sep = "\t")
         }
         
@@ -128,12 +144,15 @@ shinyServer(function(input, output, session) {
         showModal(modalDialog(title = "Not even 3D? Please check again the dataset.", easyClose = T, fade = T))
         dataset4 <- NULL
       }
+          #Missing values
+          if(any(is.na(dataset4)) || any(dataset4 =="")){
+            showModal(modalDialog(title = "There are missing values in your dataset. Please check again!", easyClose = T, fade = T))
+            dataset4 <- NULL
+          }
         return(dataset4)
         }
       }
       
-      # print(dataset)
-      # return(dataset)
     })
     
     loadNetworkFromFile <- function() {
@@ -149,7 +168,7 @@ shinyServer(function(input, output, session) {
           if (!is.null(input$file1)) {
             if(input$file1$type == "application/pdf"){
               # "This is PDF! Please upload tsv/csv files."
-              showModal(modalDialog(title = "This is PDF! Please upload tsv/txt/csv/xlsx files.", easyClose = T, fade = T))
+              showModal(modalDialog(title = "This is PDF! Please upload tsv/txt/csv/xls files.", easyClose = T, fade = T))
             } else {
             dataset1 <- read_data(input$file1$datapath)
             }
@@ -180,7 +199,7 @@ shinyServer(function(input, output, session) {
           if (!is.null(input$file2)) {
             if(input$file2$type == "application/pdf"){
               # "This is PDF! Please upload tsv/csv files."
-              showModal(modalDialog(title = "This is PDF! Please upload tsv/txt/csv/xlsx files.", easyClose = T, fade = T))
+              showModal(modalDialog(title = "This is PDF! Please upload tsv/txt/csv/xls files.", easyClose = T, fade = T))
             } else {
               dataset2 <- read_data(input$file2$datapath)
             }
@@ -200,7 +219,7 @@ shinyServer(function(input, output, session) {
           if (!is.null(input$file3)) {
             if(input$file3$type == "application/pdf"){
               # "This is PDF! Please upload tsv/csv files."
-              showModal(modalDialog(title = "This is PDF! Please upload tsv/txt/csv/xlsx files.", easyClose = T, fade = T))
+              showModal(modalDialog(title = "This is PDF! Please upload tsv/txt/csv/xls files.", easyClose = T, fade = T))
             } else {
             dataset3 <- read_data(input$file3$datapath)
             }
@@ -217,7 +236,7 @@ shinyServer(function(input, output, session) {
           if (!is.null(input$file4)) {
             if(input$file4$type == "application/pdf"){
               # "This is PDF! Please upload tsv/csv files."
-              showModal(modalDialog(title = "This is PDF! Please upload tsv/txt/csv/xlsx files.", easyClose = T, fade = T))
+              showModal(modalDialog(title = "This is PDF! Please upload tsv/txt/csv/xls files.", easyClose = T, fade = T))
             } else {
             dataset4 <- read_data(input$file4$datapath)
             }
@@ -268,7 +287,7 @@ shinyServer(function(input, output, session) {
             "text/csv",
             "text/comma-separated-values,text/plain",
             ".csv",
-            ".xlsx"
+            ".xls"
           ))
         )
       } else{}
@@ -283,7 +302,7 @@ shinyServer(function(input, output, session) {
             "text/csv",
             "text/comma-separated-values,text/plain",
             ".csv",
-            ".xlsx"
+            ".xls"
           ))
         )
       } else{}
@@ -298,7 +317,7 @@ shinyServer(function(input, output, session) {
             "text/csv",
             "text/comma-separated-values,text/plain",
             ".csv",
-            ".xlsx"
+            ".xls"
           ))
         )
       } else{}
@@ -313,7 +332,7 @@ shinyServer(function(input, output, session) {
             "text/csv",
             "text/comma-separated-values,text/plain",
             ".csv",
-            ".xlsx"
+            ".xls"
           ))
         )
       } else{}
@@ -396,11 +415,6 @@ shinyServer(function(input, output, session) {
       enable("btnanalysis")
       
       isolate({
-      # withProgress(min = 0, max = 1, {
-      #   disable("btnanalysis")
-      #   incProgress(message = "Calculation in progress",
-      #               # detail = "This may take a while...",
-      #               amount = .1)
       if(is.null(myvals$uploaded_df)) {
         return()
       }
