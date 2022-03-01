@@ -274,11 +274,11 @@ FitColorsFunction <- function(umap_dist, polygon, WL, Wa, Wb){
   # Simplex optimizer
   set.seed(123)
   simplex_vectors <- c()
-  angle <- 1
-  start.values <- c(S , pi/4 ,pi/4, pi/4, TrL, Tra , Trb) # S, RotL, Rota, Rotb,  TrL, Tra, Trb
   k <- c()
   
   for(i in 1:25){
+    angles = runif(3, min=0, max=2*pi)
+    start.values <- c(S, angles[1], angles[2], angles[3], TrL, Tra , Trb) # S, RotL, Rota, Rotb,  TrL, Tra, Trb
     Simplex_optim <- optim(par = start.values,
                            method = "Nelder-Mead",
                            MasterFunction,
@@ -290,8 +290,6 @@ FitColorsFunction <- function(umap_dist, polygon, WL, Wa, Wb){
                            faces = faces,
                            control=list(fnscale=-1, maxit=1000)) #, trace=T
     k[[i]] <- Simplex_optim
-    angle <- angle + 0.5
-    start.values <- c(start.values[1], start.values[2]+(pi/angle), start.values[3], start.values[4], start.values[5], start.values[6], start.values[7]) # mirror rotation in x
     simplex_vectors <- rbind(simplex_vectors, k[[i]]$par)
   }
   return(simplex_vectors)
