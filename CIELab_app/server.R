@@ -410,19 +410,25 @@ shinyServer(function(input, output, session) {
             }
           }
           
+          
+          if(length(matrix_counts[matrix_counts < 0])){
+            print(matrix_counts[matrix_counts < 0])
+            showModal(modalDialog(title = "The 'Single cells' track expects expression matrix with counts and therefore, 0 or positive values. If your matrix contains negative values (e.g. after log normalization), 
+            please consider the 'High-dimensional' track and transpose your matrix based on your interest.
+                                  )", easyClose = T, fade = T))
+            return() 
+          }
+          
+          withConsoleRedirect("console", {
           matrix_counts <- data.matrix(matrix_counts) # must be a matrix object!
           TransposedMatrixCounts <- t(matrix_counts) # Correct!
-          
-              withConsoleRedirect("console", {
-              data <- CreateSeuratObject(counts = TransposedMatrixCounts)
               
+              data <- CreateSeuratObject(counts = TransposedMatrixCounts)
               all.genes <- rownames(data)
               data <- ScaleData(data, do.scale =  F, do.center = F, features = all.genes)
               data <- NormalizeData(data, normalization.method = "LogNormalize")
               data <- FindVariableFeatures(object = data) #, selection.method = 'mvp' because of error in log
-         
-         
-         # data <- RunPCA(data, npcs = 50, features = VariableFeatures(object = data))
+
          data <- RunPCA(data, npcs = 50, features = VariableFeatures(object = data))
          data <- FindNeighbors(data, dims = 1:length(data@reductions$pca))
          data <- FindClusters(data, resolution = 0.5, algorithm= 1) # color in Seurat umap output
@@ -460,15 +466,11 @@ shinyServer(function(input, output, session) {
                 # print(SDMoreThanOnelog2FC_MatrixCounts)
                 
                 data <- CreateSeuratObject(counts = SDMoreThanOnelog2FC_MatrixCounts)
-                
                 all.genes <- rownames(data)
-                
                 data <- ScaleData(data, do.scale =  F, do.center = F, features = all.genes)
-                
                 data <- FindVariableFeatures(object = data, selection.method = 'mvp') #mvp because of error in log
-                
                 data <- RunPCA(data, npcs = 50, features = VariableFeatures(object = data))
-                print(data)
+                #print(data)
                 data <- FindNeighbors(data, dims = 1:15)
                 data <- FindClusters(data, resolution = 0.5, algorithm= 1) # color in Seurat umap output
                 data <- RunUMAP(data, dims = 1:50, n.components = 3L)
