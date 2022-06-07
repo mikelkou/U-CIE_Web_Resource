@@ -415,7 +415,7 @@ shinyServer(function(input, output, session) {
             print(matrix_counts[matrix_counts < 0])
             showModal(modalDialog(title = "The 'Single cells' track expects expression matrix with counts and therefore, 0 or positive values. If your matrix contains negative values (e.g. after log normalization), 
             please consider the 'High-dimensional' track and transpose your matrix based on your interest.
-                                  )", easyClose = T, fade = T))
+                                  ", easyClose = T, fade = T))
             return() 
           }
           
