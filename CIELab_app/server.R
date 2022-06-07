@@ -175,7 +175,7 @@ shinyServer(function(input, output, session) {
           }
         },
         oR_Example1 = {
-          dataset1 <- data.frame(read.delim("log2FC_MatrixCounts_tc_cropped.tsv"))
+          dataset1 <- data.frame(read.csv("GSE75748_sc_cell_type_ec_EXAMPLE1.csv"))
           # log2FC_MatrixCounts <- log2FC_MatrixCounts_tc[1:500,1:500]
           # log2FC_MatrixCounts <- log2FC_MatrixCounts_tc
           # log2FC_MatrixCounts_tc <- data.frame(read.delim("~/Documents/Documents – SUN1012692/GitHub/CIELAB/log2FC_MatrixCounts_tc.tsv"))
@@ -385,7 +385,7 @@ shinyServer(function(input, output, session) {
           
         if(input$matrix == 'Single-cells'){
           
-          if(input$LoadFileSingleCellsInput != "oR_Example1"){
+          # if(input$LoadFileSingleCellsInput != "oR_Example1"){
           matrix_counts <- loadNetworkFromFile()
           
           if(nrow(matrix_counts) < 50){
@@ -411,8 +411,12 @@ shinyServer(function(input, output, session) {
           }
           
           
+          # if(input$LoadFileSingleCellsInput == "oR_Example1"){
+          #   matrix_counts <- loadNetworkFromFile()
+          #   print(matrix_counts)
+          # }
+          
           if(length(matrix_counts[matrix_counts < 0])){
-            print(matrix_counts[matrix_counts < 0])
             showModal(modalDialog(title = "The 'Single cells' track expects expression matrix with counts and therefore, 0 or positive values. If your matrix contains negative values (e.g. after log normalization), 
             please consider the 'High-dimensional' track and transpose your matrix based on your interest.
                                   ", easyClose = T, fade = T))
@@ -441,47 +445,7 @@ shinyServer(function(input, output, session) {
          # myvals$umap_dist <- myvals$uploaded_df
          
          print("Single cells done!")
-          } 
           
-          if(input$LoadFileSingleCellsInput == "oR_Example1"){
-            input$btnanalysis
-            
-            isolate({
-              show_modal_spinner(spin = "circle", text = "Please wait..." )
-              
-              withConsoleRedirect("console", {
-                log2FC_MatrixCounts <- loadNetworkFromFile()
-                
-                # print("1")
-                SDMoreThanOnelog2FC_MatrixCounts <- c()
-                for(i in 1:ncol(log2FC_MatrixCounts)){
-                  std <- sd(log2FC_MatrixCounts[,i])
-                  SDMoreThanOnelog2FC_MatrixCounts <- cbind(SDMoreThanOnelog2FC_MatrixCounts, std)
-                }
-                colnames(SDMoreThanOnelog2FC_MatrixCounts) <- colnames(log2FC_MatrixCounts)
-                
-                SDMoreThanOnelog2FC_MatrixCounts <- dplyr::select(as.data.frame(log2FC_MatrixCounts),
-                                                           -c(names(which(SDMoreThanOnelog2FC_MatrixCounts[1,]<1))))
-                
-                # print(SDMoreThanOnelog2FC_MatrixCounts)
-                
-                data <- CreateSeuratObject(counts = SDMoreThanOnelog2FC_MatrixCounts)
-                all.genes <- rownames(data)
-                data <- ScaleData(data, do.scale =  F, do.center = F, features = all.genes)
-                data <- FindVariableFeatures(object = data, selection.method = 'mvp') #mvp because of error in log
-                data <- RunPCA(data, npcs = 50, features = VariableFeatures(object = data))
-                #print(data)
-                data <- FindNeighbors(data, dims = 1:15)
-                data <- FindClusters(data, resolution = 0.5, algorithm= 1) # color in Seurat umap output
-                data <- RunUMAP(data, dims = 1:50, n.components = 3L)
-                
-                data_umap_coord <- as.data.frame(data[["umap"]]@cell.embeddings)
-                # data_umap_coord <- data[["umap"]]@cell.embeddings
-              }) # console
-              umap_dist <- data_umap_coord
-              myvals$umap_dist <- umap_dist
-            }) # isolate
-          }
         } # if input$matrix == 'Single-cells'
       
       if(input$matrix == 'High Dimensional'){
